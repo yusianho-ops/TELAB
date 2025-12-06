@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>對錯空間 v16</title>
+    <title>對錯空間 v17</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#202124">
@@ -33,7 +33,7 @@
             color: var(--text-primary);
             -webkit-tap-highlight-color: transparent;
             padding-bottom: 90px;
-            overscroll-behavior-y: none; /* 防止拖曳時下拉重整 */
+            overscroll-behavior-y: none;
         }
 
         button, input, textarea, select { font-family: inherit; }
@@ -114,27 +114,17 @@
         }
         .detail-input:focus { border-color: var(--blue); outline: none; }
 
-        /* V16: 拖曳與清單 (Touch Optimized) */
-        .checklist-item { 
-            border-bottom: 1px solid var(--divider); padding: 15px 0; background: var(--surface-color); 
-            transition: background 0.1s;
-        }
+        /* 拖曳與清單 */
+        .checklist-item { border-bottom: 1px solid var(--divider); padding: 15px 0; background: var(--surface-color); transition: background 0.1s; }
         .checklist-item.disabled { opacity: 0.5; } 
-        
-        /* 拖曳中的樣式 */
         .checklist-item.dragging { opacity: 0.4; background: #444; border: 1px dashed var(--blue); }
         .checklist-item.drag-over { border-top: 2px solid var(--blue); }
 
         .check-header { display: flex; align-items: center; margin-bottom: 10px; justify-content: space-between; }
         
-        /* V16: 加大拖曳把手 */
         .drag-handle {
-            cursor: move; 
-            padding: 10px 15px 10px 0; /* 加大觸控區 */
-            color: var(--text-secondary); 
-            font-size: 1.5rem; /* 加大圖示 */
-            display: flex; align-items: center;
-            touch-action: none; /* 關鍵：防止瀏覽器捲動 */
+            cursor: move; padding: 10px 15px 10px 0; color: var(--text-secondary); font-size: 1.5rem;
+            display: flex; align-items: center; touch-action: none;
         }
 
         .toggle-switch { position: relative; display: inline-block; width: 34px; height: 20px; margin-right: 10px; }
@@ -316,14 +306,15 @@
         const STAGES_ENG_DEF = { 'es_sign': '工程簽約', 'es1': '開工準備', 'es2': '拆除工程', 'es3': '隔間工程', 'es4': '水電工程', 'es_ac': '冷氣工程', 'es5': '泥作工程', 'es6': '木作工程', 'es7': '系統櫃工程', 'es_kitchen': '廚具工程', 'es8': '油漆工程', 'es9': '燈具工程', 'es10': '鐵件工程', 'es_glass': '玻璃工程', 'es11': '木地板工程', 'es12': '清潔工程', 'es13': '軟裝工程', 'es14': '收尾工程' };
         const DEFAULT_ENG_ORDER = ['es_sign', 'es1', 'es2', 'es3', 'es4', 'es_ac', 'es5', 'es6', 'es7', 'es_kitchen', 'es8', 'es9', 'es10', 'es_glass', 'es11', 'es12', 'es13', 'es14'];
 
-        let designProjects = JSON.parse(localStorage.getItem('db_design_v16')) || [];
-        let engProjects = JSON.parse(localStorage.getItem('db_eng_v16')) || [];
+        let designProjects = JSON.parse(localStorage.getItem('db_design_v17')) || [];
+        let engProjects = JSON.parse(localStorage.getItem('db_eng_v17')) || [];
         let currentType = '', currentId = '', calDate = new Date(), addModeType = '', tempPhotoData = '', currentPaymentTab = 'design';
-        let dragSrcEl = null;
+        let draggedItem = null;
+        let touchDragSrcIndex = null; // Mobile drag
 
         window.onload = () => { renderCalendar(); checkAlerts(); };
 
-        // === 核心資料更新 (穩定版) ===
+        // === 核心資料更新 ===
         function updateField(key, value) {
             const list = currentType === 'design' ? designProjects : engProjects;
             const p = list.find(x => x.id === currentId);
@@ -339,8 +330,19 @@
         function toNum(el) { el.value = el.value.replace(/,/g, ''); }
         function toCur(el) { let v = parseInt(el.value.replace(/,/g, '')) || 0; el.value = v > 0 ? formatNumber(v) : ''; }
 
-        // === 導航 ===
+        // === 導航與暫存清空 (V17 FIX) ===
+        function clearTempData() {
+            tempPhotoData = '';
+            const preview = document.getElementById('new-log-preview');
+            if(preview) { preview.src = ''; preview.style.display = 'none'; }
+            const fileInput = document.getElementById('log-photo-upload');
+            if(fileInput) fileInput.value = '';
+            const textInput = document.getElementById('new-log-text');
+            if(textInput) textInput.value = '';
+        }
+
         function navigateTo(pageId) {
+            clearTempData(); // 切換頁面時清空暫存
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             const back = document.getElementById('back-btn');
@@ -359,13 +361,15 @@
         }
         function getDetailTitle() { return currentType === 'design' ? '設計詳情' : currentType === 'engineering' ? '工程詳情' : '保固詳情'; }
         function goBack() { 
+            clearTempData();
             if(document.getElementById('project-detail-page').classList.contains('active') && document.referrer === 'payment') { navigateTo('payment-page'); return; }
             if(document.getElementById('project-detail-page').classList.contains('active')) navigateTo(currentType === 'design' ? 'design-list-page' : (currentType === 'engineering' ? 'engineering-list-page' : 'warranty-list-page'));
             else navigateTo('home-page');
         }
 
-        // === 詳情頁 (含拖曳渲染) ===
+        // === 詳情頁 ===
         function openDetail(type, id) {
+            clearTempData(); // 進詳情頁先清空
             currentType = type; currentId = id;
             const list = type === 'design' ? designProjects : engProjects;
             const p = list.find(x => x.id === id);
@@ -401,11 +405,15 @@
             renderDetailPayments(p, type);
             renderStages(p, type);
             renderLogs(p);
+            
+            // 初始化日誌日期
+            document.getElementById('new-log-date').value = new Date().toISOString().split('T')[0];
+            
             renderActionBar(type, p.status);
             navigateTo('project-detail-page');
         }
 
-        // === V16 拖曳與觸控邏輯 ===
+        // === 拖曳與觸控 ===
         function renderStages(p, type) {
             const container = document.getElementById('checklist-container'); container.innerHTML = '';
             let order = p.stageOrder || (type === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER);
@@ -425,20 +433,14 @@
                 item.className = `checklist-item ${sData.done ? 'checked' : ''} ${!isEnabled ? 'disabled' : ''}`;
                 
                 // Desktop Drag
-                item.draggable = true;
-                item.dataset.index = index;
+                item.draggable = true; item.dataset.index = index;
                 item.addEventListener('dragstart', handleDragStart);
                 item.addEventListener('dragover', handleDragOver);
                 item.addEventListener('drop', handleDrop);
                 
                 let header = `<div class="check-header">`;
-                
-                // Mobile Touch Handle
-                header += `
-                <div class="drag-handle" 
-                     ontouchstart="handleTouchStart(event, ${index})"
-                     ontouchmove="handleTouchMove(event)"
-                     ontouchend="handleTouchEnd(event, ${index})">☰</div>`;
+                // Touch Handle
+                header += `<div class="drag-handle" ontouchstart="handleTouchStart(event, ${index})" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event, ${index})">☰</div>`;
                 
                 if (type === 'engineering' || type === 'warranty') {
                     header += `<label class="toggle-switch"><input type="checkbox" ${sData.enabled ? 'checked' : ''} onchange="toggleStageEnable('${sid}', this.checked)"><span class="slider"></span></label>`;
@@ -448,10 +450,7 @@
                 if (isEnabled) {
                     let details = `<div class="stage-details">`;
                     if (type === 'engineering' || type === 'warranty') {
-                        details += `<div style="display:flex; gap:10px; margin-bottom:8px;">
-                            <input type="text" class="detail-input" placeholder="廠商" value="${sData.vendor || ''}" style="flex:1; font-size:0.9rem; padding:8px;" onchange="updateStageField('${sid}','vendor',this.value)">
-                            <input type="text" class="detail-input" placeholder="成本" value="${sData.cost ? formatNumber(sData.cost) : ''}" style="flex:1; font-size:0.9rem; padding:8px; color:#ffccbc;" onfocus="toNum(this)" onblur="toCur(this); updateStageField('${sid}','cost',this.value)">
-                        </div>`;
+                        details += `<div style="display:flex; gap:10px; margin-bottom:8px;"><input type="text" class="detail-input" placeholder="廠商" value="${sData.vendor || ''}" style="flex:1; font-size:0.9rem; padding:8px;" onchange="updateStageField('${sid}','vendor',this.value)"><input type="text" class="detail-input" placeholder="成本" value="${sData.cost ? formatNumber(sData.cost) : ''}" style="flex:1; font-size:0.9rem; padding:8px; color:#ffccbc;" onfocus="toNum(this)" onblur="toCur(this); updateStageField('${sid}','cost',this.value)"></div>`;
                     }
                     details += `<div class="date-row"><div class="date-group"><div class="date-label">開始</div><input type="date" class="mini-date" value="${sData.start}" onchange="updateStageField('${sid}','start',this.value)"></div><div class="date-group"><div class="date-label">完成</div><input type="date" class="mini-date" value="${sData.end}" onchange="updateStageField('${sid}','end',this.value)"></div></div></div>`;
                     item.innerHTML = header + details;
@@ -462,88 +461,60 @@
             document.getElementById('progress-display').innerText = pct + '%';
         }
 
-        // Desktop Events
-        function handleDragStart(e) { dragSrcEl = this; e.dataTransfer.effectAllowed = 'move'; this.classList.add('dragging'); }
-        function handleDragOver(e) { if (e.preventDefault) e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; }
-        function handleDrop(e) {
-            e.stopPropagation();
-            if (dragSrcEl !== this) {
-                const list = currentType === 'design' ? designProjects : engProjects;
-                const p = list.find(x => x.id === currentId);
-                const oldIdx = parseInt(dragSrcEl.dataset.index);
-                const newIdx = parseInt(this.dataset.index);
-                const item = p.stageOrder.splice(oldIdx, 1)[0];
-                p.stageOrder.splice(newIdx, 0, item);
-                saveData(); renderStages(p, currentType);
-            }
-            dragSrcEl.classList.remove('dragging'); return false;
-        }
-
-        // Mobile Touch Logic
-        let touchDragSrcIndex = null;
+        // Drag handlers
+        function handleDragStart(e) { draggedItem = this; e.dataTransfer.effectAllowed = 'move'; this.classList.add('dragging'); }
+        function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; }
+        function handleDrop(e) { e.stopPropagation(); if (draggedItem !== this) { reorderStages(parseInt(draggedItem.dataset.index), parseInt(this.dataset.index)); } draggedItem.classList.remove('dragging'); return false; }
         
-        function handleTouchStart(e, index) {
-            touchDragSrcIndex = index;
-            // 視覺回饋：找到該行 item 並加上樣式
-            const item = e.target.closest('.checklist-item');
-            if(item) item.classList.add('dragging');
-        }
-
-        function handleTouchMove(e) {
-            e.preventDefault(); // 防止滾動
-            const touch = e.touches[0];
-            const target = document.elementFromPoint(touch.clientX, touch.clientY);
-            const item = target ? target.closest('.checklist-item') : null;
-            
-            // 移除所有 drag-over 樣式
-            document.querySelectorAll('.checklist-item').forEach(el => el.classList.remove('drag-over'));
-            
-            if (item) {
-                item.classList.add('drag-over');
+        // Touch handlers
+        function handleTouchStart(e, index) { touchDragSrcIndex = index; const item = e.target.closest('.checklist-item'); if(item) item.classList.add('dragging'); }
+        function handleTouchMove(e) { e.preventDefault(); const t = e.touches[0]; const target = document.elementFromPoint(t.clientX, t.clientY); const item = target ? target.closest('.checklist-item') : null; document.querySelectorAll('.checklist-item').forEach(el => el.classList.remove('drag-over')); if (item) item.classList.add('drag-over'); }
+        function handleTouchEnd(e, index) { 
+            const t = e.changedTouches[0]; const target = document.elementFromPoint(t.clientX, t.clientY); const targetItem = target ? target.closest('.checklist-item') : null; 
+            document.querySelectorAll('.checklist-item').forEach(el => { el.classList.remove('dragging'); el.classList.remove('drag-over'); });
+            if (targetItem && targetItem.dataset.index !== undefined) { 
+                const newIndex = parseInt(targetItem.dataset.index); 
+                if (touchDragSrcIndex !== null && touchDragSrcIndex !== newIndex) { reorderStages(touchDragSrcIndex, newIndex); }
             }
+            touchDragSrcIndex = null; 
         }
 
-        function handleTouchEnd(e, index) {
-            const touch = e.changedTouches[0];
-            const target = document.elementFromPoint(touch.clientX, touch.clientY);
-            const targetItem = target ? target.closest('.checklist-item') : null;
+        function reorderStages(oldIdx, newIdx) {
+            const list = currentType === 'design' ? designProjects : engProjects;
+            const p = list.find(x => x.id === currentId);
+            const item = p.stageOrder.splice(oldIdx, 1)[0];
+            p.stageOrder.splice(newIdx, 0, item);
+            saveData(); renderStages(p, currentType);
+        }
+
+        // === 新增日誌 (V17 Fix) ===
+        function addLog(){
+            const d=document.getElementById('new-log-date').value, t=document.getElementById('new-log-text').value; 
+            if(!d)return alert('日期?'); if(!t&&!tempPhotoData)return alert('內容?'); 
+            const list=currentType==='design'?designProjects:engProjects; 
+            const p=list.find(x=>x.id===currentId); 
+            if(!p.logs)p.logs=[]; 
+            p.logs.push({id:Date.now(),date:d,content:t,photo:tempPhotoData}); 
+            saveData(); 
             
-            // 移除樣式
-            document.querySelectorAll('.checklist-item').forEach(el => {
-                el.classList.remove('dragging');
-                el.classList.remove('drag-over');
-            });
-
-            if (targetItem && targetItem.dataset.index !== undefined) {
-                const newIndex = parseInt(targetItem.dataset.index);
-                if (touchDragSrcIndex !== null && touchDragSrcIndex !== newIndex) {
-                    const list = currentType === 'design' ? designProjects : engProjects;
-                    const p = list.find(x => x.id === currentId);
-                    
-                    // 移動資料
-                    const item = p.stageOrder.splice(touchDragSrcIndex, 1)[0];
-                    p.stageOrder.splice(newIndex, 0, item);
-                    
-                    saveData();
-                    renderStages(p, currentType);
-                }
-            }
-            touchDragSrcIndex = null;
+            // 重要：清空暫存，防止污染
+            clearTempData();
+            // 重設日期為今天
+            document.getElementById('new-log-date').value = new Date().toISOString().split('T')[0];
+            
+            // 局部刷新日誌區
+            renderLogs(p);
         }
 
-        // === 其他功能保持不變 ===
-        function updateStageField(sid, f, v) { 
-            const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); 
-            p.stages[sid][f] = (f === 'cost') ? parseCurrency(v) : v; saveData(); 
-        }
+        // ... (其他既有函數) ...
+        function updateStageField(sid, f, v) { const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); p.stages[sid][f] = (f === 'cost') ? parseCurrency(v) : v; saveData(); }
         function updatePaymentAmount(pid, idx, val, type) { const list = type === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === pid); p.payments[idx].amount = parseCurrency(val); saveData(); }
         function switchPaymentTab(tab) { currentPaymentTab = tab; document.getElementById('tab-design').className = tab === 'design' ? 'tab-btn active' : 'tab-btn'; document.getElementById('tab-engineering').className = tab === 'engineering' ? 'tab-btn active' : 'tab-btn'; renderPaymentPage(); }
         function renderPaymentPage() {
             const container = document.getElementById('payment-content-container'); container.innerHTML = ''; const list = currentPaymentTab === 'design' ? designProjects : engProjects;
             if(list.length === 0) { container.innerHTML = '<div style="text-align:center;color:#666;margin-top:30px">暫無合約</div>'; return; }
             list.forEach(p => {
-                const priceKey = currentPaymentTab === 'design' ? 'designPrice' : 'engPrice'; const totalStr = p[priceKey] || '未報價'; const totalVal = totalStr; 
-                let profitHtml = '';
+                const priceKey = currentPaymentTab === 'design' ? 'designPrice' : 'engPrice'; const totalStr = p[priceKey] || '未報價'; const totalVal = parseCurrency(totalStr); let profitHtml = '';
                 if (currentPaymentTab === 'engineering') {
                     let totalCost = 0; Object.values(p.stages || {}).forEach(s => { if (s.enabled && s.cost) totalCost += parseInt(s.cost || 0); });
                     const profit = totalVal - totalCost; const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
@@ -593,14 +564,13 @@
         function checkAlerts(){ const l=document.getElementById('alert-list'); l.innerHTML=''; const t=new Date().toISOString().split('T')[0]; let h=false; const chk=(projs,lbl,defs)=>{projs.forEach(p=>{if(p.status==='suspended'||p.status==='warranty')return; Object.keys(p.stages||{}).forEach(sid=>{const s=p.stages[sid]; if(s.enabled!==false&&s.end&&s.end<t&&!s.done){h=true; l.innerHTML+=`<div class="alert-item" onclick="openDetail('${lbl==='設計'?'design':'engineering'}','${p.id}')">⚠️ [${lbl}] ${p.name} 延誤</div>`;}})})}; chk(designProjects,'設計',STAGES_DESIGN_DEF); engProjects.forEach(p=>{if(p.status==='suspended'||p.status==='warranty')return; Object.keys(p.stages||{}).forEach(sid=>{const s=p.stages[sid]; if(s.enabled!==false&&s.end&&s.end<t&&!s.done){h=true; l.innerHTML+=`<div class="alert-item" onclick="openDetail('engineering','${p.id}')">⚠️ [工程] ${p.name}-${STAGES_ENG_DEF[sid]} 延誤</div>`;}})}); engProjects.forEach(p=>{if(p.status==='suspended'){h=true;l.innerHTML+=`<div class="alert-item" style="color:var(--orange)" onclick="openDetail('engineering','${p.id}')">⛔ [暫緩] ${p.name}</div>`;}}); engProjects.forEach(p=>{if(p.status==='warranty'&&p.warrantyDate){const d=new Date(p.warrantyDate); d.setMonth(d.getMonth()+10); if(t>=d.toISOString().split('T')[0]){h=true; l.innerHTML+=`<div class="alert-item" style="color:var(--purple)" onclick="openDetail('warranty','${p.id}')">📞 [保固] ${p.name} 維修關懷</div>`;}}}); document.getElementById('alert-dashboard').style.display=h?'block':'none'; }
         function renderCalendar(){ const y=calDate.getFullYear(), m=calDate.getMonth(); document.getElementById('cal-month-year').innerText=`${y}年 ${m+1}月`; const c=document.getElementById('calendar-days'); c.innerHTML=''; for(let i=0;i<new Date(y,m,1).getDay();i++)c.innerHTML+='<div></div>'; for(let d=1;d<=new Date(y,m+1,0).getDate();d++){ const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; let hasDesign=false, hasEng=false, hasWar=false; designProjects.forEach(p=>{Object.values(p.stages||{}).forEach(s=>{if(s.start&&s.end&&ds>=s.start&&ds<=s.end)hasDesign=true;});}); engProjects.forEach(p=>{if(p.status==='warranty'){if(p.warrantyDate){let endWar=new Date(p.warrantyDate); endWar.setFullYear(endWar.getFullYear()+1); if(ds>=p.warrantyDate&&ds<=endWar.toISOString().split('T')[0])hasWar=true;}}else{Object.values(p.stages||{}).forEach(s=>{if(p.stages[s.id]?.enabled!==false&&s.start&&s.end&&ds>=s.start&&ds<=s.end)hasEng=true;});}}); let barsHtml='<div class="cal-bar-container">'; if(hasDesign)barsHtml+='<div class="cal-bar bar-design"></div>'; if(hasEng)barsHtml+='<div class="cal-bar bar-eng"></div>'; if(hasWar)barsHtml+='<div class="cal-bar bar-warranty"></div>'; barsHtml+='</div>'; const div=document.createElement('div'); div.className=`cal-date`; div.innerHTML=`<span>${d}</span>${barsHtml}`; div.onclick=()=>showEvents(ds,div); c.appendChild(div); } }
         function showEvents(ds,el){ document.querySelectorAll('.cal-date').forEach(e=>e.classList.remove('active')); el.classList.add('active'); const b=document.getElementById('calendar-events'); b.innerHTML=`<div style="font-weight:bold;margin-bottom:10px">📅 ${ds}</div>`; let h=''; const add=(l,lbl,def,typ)=>l.forEach(p=>{Object.keys(p.stages||{}).forEach(sid=>{const s=p.stages[sid]; if(s.enabled!==false&&s.start&&s.end&&ds>=s.start&&ds<=s.end){let j=typ; if(typ==='engineering'&&p.status==='warranty')j='warranty'; let sName = typ==='design'?def[sid] : STAGES_ENG_DEF[sid]; h+=`<div class="event-item" onclick="openDetail('${j}','${p.id}')"><div class="dot" style="background:var(--${typ==='design'?'blue':'yellow'})"></div>進行中：${p.name} - ${sName}</div>`;}});}); add(designProjects,'設',STAGES_DESIGN_DEF,'design'); add(engProjects,'工',[],'engineering'); if(h==='')h='<div style="color:#666">今日無行程</div>'; b.innerHTML+=h; }
-        function addLog(){const d=document.getElementById('new-log-date').value, t=document.getElementById('new-log-text').value; if(!d)return alert('日期?'); if(!t&&!tempPhotoData)return alert('內容?'); const l=currentType==='design'?designProjects:engProjects; const p=l.find(x=>x.id===currentId); if(!p.logs)p.logs=[]; p.logs.push({id:Date.now(),date:d,content:t,photo:tempPhotoData}); saveData(); openDetail(currentType,currentId);}
         function deleteLog(lid){if(!confirm('刪除?'))return; const l=currentType==='design'?designProjects:engProjects; const p=l.find(x=>x.id===currentId); p.logs=p.logs.filter(k=>k.id!==lid); saveData(); openDetail(currentType,currentId);}
         function renderLogs(p){const c=document.getElementById('log-list-container'); c.innerHTML=''; (p.logs||[]).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(l=>{c.innerHTML+=`<div class="log-item"><button class="log-delete" onclick="deleteLog(${l.id})">×</button><div class="log-date">${l.date}</div><div class="log-content">${l.content}</div>${l.photo?`<img src="${l.photo}" class="log-image">`:''}</div>`;});}
         function handleTempPhoto(i){if(i.files&&i.files[0]){const r=new FileReader(); r.onload=e=>{const m=new Image(); m.src=e.target.result; m.onload=()=>{const c=document.createElement('canvas'),x=c.getContext('2d'),s=400/m.width; c.width=400;c.height=m.height*s; x.drawImage(m,0,0,c.width,c.height); tempPhotoData=c.toDataURL('image/jpeg',0.7); document.getElementById('new-log-preview').src=tempPhotoData; document.getElementById('new-log-preview').style.display='block';}}; r.readAsDataURL(i.files[0]);}}
         function openAddModal(t){addModeType=t; document.getElementById('modal-title').innerText=t==='design'?'新增設計':'新增工程'; document.getElementById('add-modal').style.display='flex'; document.getElementById('new-name').value='';}
         function closeAddModal(){document.getElementById('add-modal').style.display='none';}
         function changeMonth(n){calDate.setMonth(calDate.getMonth()+n); renderCalendar();}
-        function saveData(){localStorage.setItem('db_design_v16',JSON.stringify(designProjects)); localStorage.setItem('db_eng_v16',JSON.stringify(engProjects));}
+        function saveData(){localStorage.setItem('db_design_v17',JSON.stringify(designProjects)); localStorage.setItem('db_eng_v17',JSON.stringify(engProjects));}
     </script>
 </body>
 </html>
