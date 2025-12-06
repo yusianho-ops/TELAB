@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>對錯空間 v23 (Fixed)</title>
+    <title>對錯空間 v23.1 (Clean)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#202124">
@@ -17,6 +17,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <style>
+        /* 樣式表 */
         :root { --bg-color: #202124; --surface-color: #303134; --text-primary: #e8eaed; --text-secondary: #9aa0a6; --divider: #3c4043; --blue: #8ab4f8; --red: #f28b82; --green: #81c995; --yellow: #fdd663; --orange: #fcad70; --purple: #c58af9; --teal: #64ffda; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-primary); -webkit-tap-highlight-color: transparent; padding-bottom: 90px; overscroll-behavior-y: none; }
         button, input, textarea, select { font-family: inherit; }
@@ -36,12 +37,14 @@
         .cal-bar-container { width: 100%; display: flex; flex-direction: column; gap: 2px; margin-top: 2px; align-items: center; }
         .cal-bar { width: 85%; height: 3px; border-radius: 2px; }
         .bar-design { background-color: var(--blue); } .bar-eng { background-color: var(--yellow); } .bar-warranty { background-color: var(--purple); }
+        
         .event-list-box { margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--divider); font-size: 0.9rem; color: var(--text-secondary); min-height: 20px;}
         .event-item { margin-bottom: 8px; display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 6px; cursor: pointer; background: rgba(255,255,255,0.03); }
         .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
         .alert-section { background-color: rgba(242, 139, 130, 0.15); border: 1px solid var(--red); border-radius: 12px; padding: 15px; margin-bottom: 20px; display: none; }
         .alert-item { color: var(--red); font-size: 0.9rem; margin-bottom: 8px; cursor: pointer; padding-bottom: 5px; border-bottom: 1px solid rgba(242, 139, 130, 0.3); }
+        
         .project-card { background: var(--surface-color); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid var(--divider); position: relative; overflow: hidden; cursor: pointer; }
         .progress-bg { position: absolute; bottom: 0; left: 0; height: 4px; width: 100%; background: #444; }
         .progress-fill { height: 100%; transition: width 0.3s; background: linear-gradient(to right, var(--green), var(--yellow)); }
@@ -202,13 +205,13 @@
         // ==========================================
         // ⚠️【請填入你的 Firebase Config】
         const firebaseConfig = {
-            apiKey: "AIzaSyDEKjRwWI6vkCg-dIsv1I4BamcC34UaJTU",
-            authDomain: "te-interiorlab.firebaseapp.com",
-            projectId: "te-interiorlab",
-            storageBucket: "te-interiorlab.firebasestorage.app",
-            messagingSenderId: "402097472858",
-            appId: "1:402097472858:web:e21b7e698c848efa271f63",
-            measurementId: "G-RLWZVP7R3Z"
+            apiKey: "你的apiKey",
+            authDomain: "你的authDomain",
+            projectId: "你的projectId",
+            storageBucket: "你的storageBucket",
+            messagingSenderId: "你的messagingSenderId",
+            appId: "你的appId",
+            measurementId: "你的measurementId"
         };
         // ==========================================
 
@@ -228,7 +231,7 @@
 
         window.onload = () => {
             document.getElementById('loading-overlay').style.display = 'flex';
-            document.getElementById('loading-msg').innerText = '正在匿名登入 Google...';
+            document.getElementById('loading-msg').innerText = '正在匿名登入...';
             
             auth.signInAnonymously()
                 .then(() => {
@@ -260,7 +263,7 @@
             console.error(err);
             document.getElementById('loading-overlay').style.display = 'none';
             if (err.code === 'permission-denied') {
-                alert("讀取失敗：權限不足 (Permission Denied)\n\n請去 Firestore Rules 檢查是否設為 allow read, write: if true (或 auth != null)");
+                alert("讀取失敗：權限不足。請檢查 Firebase Rules (request.auth != null)。");
             }
         }
 
@@ -301,25 +304,17 @@
             
             try {
                 const docRef = await db.collection(collection).add(newObj);
-                
-                // V22: 手動將新案件推入本地陣列，確保立刻能開啟
                 newObj.id = docRef.id;
                 if(addModeType === 'design') designProjects.push(newObj);
                 else engProjects.push(newObj);
 
                 document.getElementById('loading-overlay').style.display = 'none';
                 closeAddModal();
-                
-                // 直接開啟
                 openDetail(addModeType, docRef.id);
             } catch (error) {
                 console.error("建立失敗:", error);
                 document.getElementById('loading-overlay').style.display = 'none';
-                if (error.code === 'permission-denied') {
-                    alert("寫入失敗：權限不足。\n\n請檢查 Firestore Rules。");
-                } else {
-                    alert("建立失敗：" + error.message);
-                }
+                alert("建立失敗：" + error.message);
             }
         }
 
@@ -339,7 +334,7 @@
                     photoUrl = await fileRef.getDownloadURL();
                 } catch(e) {
                     console.error("Upload error:", e);
-                    alert("上傳失敗: " + e.message + "\n(請確認 Storage Rules)");
+                    alert("上傳失敗: " + e.message);
                     document.getElementById('loading-overlay').style.display = 'none';
                     return;
                 }
@@ -406,16 +401,10 @@
                 const list = type === 'design' ? designProjects : engProjects; 
                 const p = list.find(x => x.id === id); 
                 
-                if(!p) {
-                    alert("找不到案件資料，請稍後再試 (Syncing...)");
-                    return; 
-                }
+                if(!p) { alert("找不到案件資料 (Syncing...)"); return; }
 
                 ['name', 'client', 'phone', 'address', 'parking', 'code'].forEach(key => { document.getElementById('d-' + key).value = p[key] || ''; }); 
-                const dPriceRow = document.getElementById('design-price-row'); 
-                const ePriceRow = document.getElementById('engineering-price-row'); 
-                const wDateRow = document.getElementById('warranty-date-row'); 
-                const payBtn = document.getElementById('add-payment-btn'); 
+                const dPriceRow = document.getElementById('design-price-row'); const ePriceRow = document.getElementById('engineering-price-row'); const wDateRow = document.getElementById('warranty-date-row'); const payBtn = document.getElementById('add-payment-btn'); 
                 dPriceRow.style.display = 'none'; ePriceRow.style.display = 'none'; wDateRow.style.display = 'none'; payBtn.style.display = 'none'; 
                 
                 if (type === 'design') { 
@@ -434,10 +423,7 @@
                 document.getElementById('new-log-date').value = new Date().toISOString().split('T')[0]; 
                 renderActionBar(type, p.status); 
                 navigateTo('project-detail-page');
-            } catch(e) {
-                console.error(e);
-                alert("開啟詳情頁失敗: " + e.message);
-            }
+            } catch(e) { console.error(e); alert("開啟詳情頁失敗: " + e.message); }
         }
 
         async function updateStageField(sid, f, v) { const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const val = (f === 'cost') ? parseCurrency(v) : v; const updateKey = `stages.${sid}.${f}`; await updateCloud(collection, currentId, { [updateKey]: val }); }
@@ -450,7 +436,7 @@
         function updatePaymentLink(pid, idx, val, type) { updatePaymentVal(pid, idx, 'linkedStage', val, type); }
         async function addEngineeringPaymentStage() { const p = engProjects.find(x => x.id === currentId); const newPayments = [...(p.payments||[])]; newPayments.push({ name: `第 ${newPayments.length + 1} 期款`, amount: 0, done: false, date: '', linkedStage: '' }); await updateCloud("eng_projects", currentId, { payments: newPayments }); p.payments = newPayments; renderDetailPayments(p, 'engineering'); }
         
-        // 確保 renderDetailPayments 被定義
+        // Render Detail Payments
         function renderDetailPayments(p, type) {
             const payContainer = document.getElementById('detail-payment-container'); payContainer.innerHTML = '';
             const priceKey = type === 'design' ? 'designPrice' : 'engPrice'; const totalVal = p[priceKey] || 0; const paymentList = p.payments || [];
@@ -469,6 +455,7 @@
             });
         }
 
+        // Drag Logic
         function handleDragStart(e) { draggedItem = this; e.dataTransfer.effectAllowed = 'move'; this.classList.add('dragging'); }
         function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; }
         function handleDrop(e) { e.stopPropagation(); if (draggedItem !== this) { reorderStages(parseInt(draggedItem.dataset.index), parseInt(this.dataset.index)); } draggedItem.classList.remove('dragging'); return false; }
