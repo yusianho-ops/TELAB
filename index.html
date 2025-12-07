@@ -3,17 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>對錯空間 v25 (Flagship)</title>
+    <title>對錯空間 v24 (Fixed)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#202124">
-    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <style>
+        /* 樣式區 */
         :root { --bg-color: #202124; --surface-color: #303134; --text-primary: #e8eaed; --text-secondary: #9aa0a6; --divider: #3c4043; --blue: #8ab4f8; --red: #f28b82; --green: #81c995; --yellow: #fdd663; --orange: #fcad70; --purple: #c58af9; --teal: #64ffda; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; color: var(--text-primary); -webkit-tap-highlight-color: transparent; padding-bottom: 90px; overscroll-behavior-y: none; }
         button, input, textarea, select { font-family: inherit; }
@@ -24,7 +28,6 @@
         .page { display: none; } .page.active { display: block; }
         #loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center; color:white; font-size:1.2rem; flex-direction: column; gap:10px; text-align: center; padding: 20px;}
         
-        /* Calendar */
         .calendar-section { background: var(--surface-color); border-radius: 12px; padding: 15px; margin-bottom: 20px; }
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
@@ -32,13 +35,16 @@
         .cal-date { border-radius: 6px; font-size: 0.85rem; cursor: pointer; position: relative; height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 4px; background: rgba(255,255,255,0.02); }
         .cal-date.active { background-color: rgba(138, 180, 248, 0.2); color: var(--blue); font-weight: bold; border: 1px solid var(--blue); }
         .cal-bar-container { width: 100%; display: flex; flex-direction: column; gap: 2px; margin-top: 2px; align-items: center; }
+        .cal-bar { width: 85%; height: 3px; border-radius: 2px; }
+        .bar-design { background-color: var(--blue); } .bar-eng { background-color: var(--yellow); } .bar-warranty { background-color: var(--purple); }
+        
         .event-list-box { margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--divider); font-size: 0.9rem; color: var(--text-secondary); min-height: 20px;}
         .event-item { margin-bottom: 8px; display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 6px; cursor: pointer; background: rgba(255,255,255,0.03); }
         .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-        /* UI Elements */
         .alert-section { background-color: rgba(242, 139, 130, 0.15); border: 1px solid var(--red); border-radius: 12px; padding: 15px; margin-bottom: 20px; display: none; }
         .alert-item { color: var(--red); font-size: 0.9rem; margin-bottom: 8px; cursor: pointer; padding-bottom: 5px; border-bottom: 1px solid rgba(242, 139, 130, 0.3); }
+        
         .project-card { background: var(--surface-color); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid var(--divider); position: relative; overflow: hidden; cursor: pointer; }
         .progress-bg { position: absolute; bottom: 0; left: 0; height: 4px; width: 100%; background: #444; }
         .progress-fill { height: 100%; transition: width 0.3s; background: linear-gradient(to right, var(--green), var(--yellow)); }
@@ -46,43 +52,32 @@
         .tag-track { background: var(--yellow); color: #333; } .tag-done { background: var(--green); color: #333; } .tag-suspend { background: var(--red); color: white; } .tag-warranty { background: var(--purple); color: white; }
         .card-progress-text { font-size: 0.85rem; color: var(--teal); margin-top: 5px; display: flex; align-items: center; gap: 5px; } .card-progress-text::before { content: '►'; font-size: 0.7rem; }
 
-        /* Detail Page */
         .detail-section { background: var(--surface-color); padding: 20px; border-radius: 12px; margin-bottom: 15px; }
-        .detail-title { font-size: 0.9rem; font-weight: bold; color: var(--blue); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center;}
+        .detail-title { font-size: 0.9rem; font-weight: bold; color: var(--blue); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
         .input-row { margin-bottom: 15px; } .input-label { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px; display: block; }
         .detail-input { width: 100%; padding: 12px; box-sizing: border-box; background: #202124; border: 1px solid var(--divider); border-radius: 8px; font-size: 1rem; color: var(--text-primary); }
         .detail-input:focus { border-color: var(--blue); outline: none; }
 
-        /* Stages List */
         .checklist-item { border-bottom: 1px solid var(--divider); padding: 15px 0; background: var(--surface-color); transition: background 0.1s; }
-        .checklist-item.disabled { opacity: 0.4; } 
-        .checklist-item.dragging { opacity: 0.4; background: #444; border: 1px dashed var(--blue); } 
+        .checklist-item.disabled { opacity: 0.5; } 
+        .checklist-item.dragging { opacity: 0.4; background: #444; border: 1px dashed var(--blue); } .checklist-item.drag-over { border-top: 2px solid var(--blue); }
         .check-header { display: flex; align-items: center; margin-bottom: 10px; justify-content: space-between; }
-        
         .drag-handle { cursor: move; padding: 10px 15px 10px 0; color: var(--text-secondary); font-size: 1.5rem; display: flex; align-items: center; touch-action: none; }
         .toggle-switch { position: relative; display: inline-block; width: 34px; height: 20px; margin-right: 10px; } .toggle-switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 34px; } .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; } input:checked + .slider { background-color: var(--blue); } input:checked + .slider:before { transform: translateX(14px); }
-        
-        .custom-checkbox { width: 22px; height: 22px; border: 2px solid var(--text-secondary); border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; transition: background 0.1s; }
+        .custom-checkbox { width: 22px; height: 22px; border: 2px solid var(--text-secondary); border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; }
         .checklist-item.checked .custom-checkbox { background: var(--green); border-color: var(--green); color: #202124; } .checklist-item.checked .custom-checkbox::after { content: '✓'; font-weight: bold; }
         .payment-check-area .custom-checkbox.checked { background: var(--teal) !important; border-color: var(--teal) !important; color: #202124; } .payment-check-area .custom-checkbox.checked::after { content: '✓'; font-weight: bold; }
-        
         .stage-details { margin-top: 10px; padding-left: 0; border-left: 2px solid var(--divider); padding-left: 10px; margin-left: 35px; }
         .date-row { display: flex; gap: 10px; margin-top: 8px; } .date-group { flex: 1; } .date-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 2px; }
         .mini-date { width: 100%; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); padding: 6px; border-radius: 6px; font-size: 0.85rem; color-scheme: dark; }
 
-        /* V25: 編輯模式按鈕 */
-        .btn-edit-mode { background: transparent; border: 1px solid var(--text-secondary); color: var(--text-secondary); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; cursor: pointer;}
-        .btn-edit-mode.active { background: var(--blue); color: #202124; border-color: var(--blue); }
-        .btn-add-stage { width: 100%; padding: 10px; margin-top: 10px; background: rgba(255,255,255,0.05); border: 1px dashed var(--text-secondary); color: var(--text-secondary); border-radius: 8px; cursor: pointer; }
-
-        /* Logs & Payment */
         .log-input-area { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--divider); }
         .log-btn-group { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
         .btn-add-log { background: var(--blue); color: #202124; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
         .preview-img { max-width: 100px; max-height: 100px; border-radius: 4px; margin-top: 10px; display: none; border: 1px solid var(--divider); }
         .log-list { margin-top: 10px; } .log-item { background: #2b2c2f; border-radius: 8px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--blue); position: relative; }
-        .log-date { font-size: 0.8rem; color: var(--blue); margin-bottom: 5px; font-weight: bold; } .log-content { font-size: 0.95rem; line-height: 1.4; white-space: pre-wrap; margin-bottom: 10px; } .log-image { width: 100%; border-radius: 6px; margin-top: 5px; border: 1px solid var(--divider); cursor: pointer; }
+        .log-date { font-size: 0.8rem; color: var(--blue); margin-bottom: 5px; font-weight: bold; } .log-content { font-size: 0.95rem; line-height: 1.4; white-space: pre-wrap; margin-bottom: 10px; } .log-image { width: 100%; border-radius: 6px; margin-top: 5px; border: 1px solid var(--divider); }
         .log-delete { position: absolute; top: 10px; right: 10px; color: var(--red); background: none; border: none; cursor: pointer; font-size: 1.2rem; }
 
         .payment-tabs { display: flex; border-bottom: 1px solid var(--divider); margin-bottom: 15px; }
@@ -90,14 +85,11 @@
         .payment-card { background: var(--surface-color); padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid var(--teal); }
         .payment-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; color: var(--text-primary); } .payment-amount { font-size: 0.9rem; color: var(--yellow); margin-bottom: 10px; }
         .payment-row { display: flex; align-items: flex-start; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-top: 5px; flex-direction: column; gap:10px;}
-        .payment-header { display: flex; width: 100%; justify-content: space-between; align-items: center;} .payment-check-area { display: flex; align-items: center; gap: 8px; cursor: pointer;} 
+        .payment-header { display: flex; width: 100%; justify-content: space-between; align-items: center;} .payment-check-area { display: flex; align-items: center; gap: 8px; cursor: pointer;} .payment-info-area { text-align: right; display:flex; flex-direction:column; gap:5px; align-items: flex-end;}
         .stage-selector { background: #202124; border: 1px solid var(--divider); color: var(--text-secondary); padding: 5px; border-radius: 4px; width: 100%; font-size: 0.85rem; margin-top: 5px;}
         .profit-box { margin-top: 15px; background: rgba(0,0,0,0.4); border: 1px solid var(--divider); border-radius: 8px; padding: 10px; }
         .profit-title { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; border-bottom: 1px solid var(--divider); padding-bottom: 5px;} .profit-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 4px; } .profit-final { font-size: 1rem; font-weight: bold; border-top: 1px solid var(--divider); padding-top: 6px; margin-top: 6px; display: flex; justify-content: space-between;} .profit-positive { color: var(--green); } .profit-negative { color: var(--red); }
-        
-        .menu-btn { display: block; width: 100%; padding: 20px; margin-bottom: 15px; background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--divider); border-radius: 12px; font-size: 1.1rem; text-align: left; cursor: pointer; position: relative; } 
-        .menu-btn .count-badge { float: right; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; font-size: 0.9rem; color: var(--text-secondary); }
-        
+        .menu-btn { display: block; width: 100%; padding: 20px; margin-bottom: 15px; background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--divider); border-radius: 12px; font-size: 1.1rem; text-align: left; cursor: pointer; position: relative; } .menu-btn::after { content: '›'; position: absolute; right: 20px; color: var(--text-secondary); font-size: 1.5rem; top: 15px; }
         .fab { position: fixed; bottom: 30px; right: 30px; width: 56px; height: 56px; background: var(--blue); color: #202124; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 200; cursor: pointer; }
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); align-items: center; justify-content: center; } .modal-content { background: var(--surface-color); padding: 25px; border-radius: 15px; width: 85%; max-width: 350px; }
         .btn-group { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; } .btn-primary { background: var(--blue); color: #202124; padding: 10px 20px; border-radius: 20px; border: none; } .btn-cancel { background: transparent; color: var(--text-primary); border: 1px solid var(--divider); padding: 10px 20px; border-radius: 20px; }
@@ -108,6 +100,7 @@
 
     <div id="loading-overlay">
         <div id="loading-msg">連線資料庫中...</div>
+        <div id="upload-status" style="font-size:0.9rem; color:#aaa; margin-top:5px;"></div>
     </div>
 
     <header>
@@ -130,9 +123,9 @@
             <div id="calendar-days" class="calendar-grid"></div>
             <div id="calendar-events" class="event-list-box">點擊日期查看行程</div>
         </div>
-        <button class="menu-btn" onclick="navigateTo('design-list-page')">設計案件 <span id="cnt-design" class="count-badge">0</span></button>
-        <button class="menu-btn" onclick="navigateTo('engineering-list-page')">工程案件 <span id="cnt-eng" class="count-badge">0</span></button>
-        <button class="menu-btn" onclick="navigateTo('warranty-list-page')" style="border-left: 5px solid var(--purple);">完工保固 <span id="cnt-warranty" class="count-badge">0</span></button>
+        <button class="menu-btn" onclick="navigateTo('design-list-page')">設計案件</button>
+        <button class="menu-btn" onclick="navigateTo('engineering-list-page')">工程案件</button>
+        <button class="menu-btn" onclick="navigateTo('warranty-list-page')" style="border-left: 5px solid var(--purple);">完工保固</button>
         <button class="menu-btn" onclick="navigateTo('payment-page')" style="border-left: 5px solid var(--teal);">收款進度</button>
     </div>
 
@@ -170,36 +163,20 @@
                 <label class="input-label" style="color:var(--teal)">設計費總額</label>
                 <input type="text" class="detail-input" id="d-design-price" placeholder="輸入金額" onfocus="toNum(this)" onblur="toCur(this); updateField('designPrice', this.value)" style="color:var(--teal); font-weight:bold;">
             </div>
-            <div id="engineering-price-row" style="display:none; margin-bottom:20px;">
-                <div style="display:flex; gap:10px; margin-bottom:10px;">
-                    <div style="flex:1">
-                        <label class="input-label" style="color:var(--yellow)">合約金額</label>
-                        <input type="text" class="detail-input" id="d-eng-base" placeholder="金額" onfocus="toNum(this)" onblur="toCur(this); updateField('engBasePrice', this.value)" style="color:var(--yellow); font-weight:bold;">
-                    </div>
-                    <div style="flex:1">
-                        <label class="input-label" style="color:var(--orange)">追加減</label>
-                        <input type="text" class="detail-input" id="d-eng-var" placeholder="金額" onfocus="toNum(this)" onblur="toCur(this); updateField('engVarPrice', this.value)" style="color:var(--orange); font-weight:bold;">
-                    </div>
-                </div>
-                <div style="text-align:right; font-size:1rem; color:var(--text-primary); border-top:1px solid var(--divider); padding-top:5px;">
-                    總計: <span id="d-eng-total" style="color:var(--yellow); font-weight:bold;">$0</span>
-                </div>
+            <div id="engineering-price-row" class="input-row" style="display:none; margin-bottom:20px;">
+                <label class="input-label" style="color:var(--yellow)">工程報價金額 (收入)</label>
+                <input type="text" class="detail-input" id="d-eng-price" placeholder="輸入金額" onfocus="toNum(this)" onblur="toCur(this); updateField('engPrice', this.value)" style="color:var(--yellow); font-weight:bold;">
             </div>
-
             <div id="detail-payment-container"></div>
-            <div id="profit-box-display"></div>
             <button id="add-payment-btn" style="display:none; margin-top:10px; font-size:0.8rem; background:var(--surface-color); border:1px solid var(--teal); color:var(--teal); padding:5px 10px; border-radius:12px;" onclick="addEngineeringPaymentStage()">+ 新增收款期數</button>
         </div>
 
         <div class="detail-section">
-            <div class="detail-title">
-                <span id="stages-title">階段進度</span>
-                <div>
-                    <button class="btn-edit-mode" id="btn-edit-mode" onclick="toggleEditMode()">⚙️ 設定</button>
-                </div>
+            <div class="detail-title" style="display:flex; justify-content:space-between;">
+                <span id="stages-title">階段進度 (可拖曳排序)</span>
+                <span id="progress-display" style="color:var(--green)">0%</span>
             </div>
             <div id="checklist-container"></div>
-            <button id="btn-add-stage" class="btn-add-stage" style="display:none" onclick="addCustomStage()">+ 自訂工程項目</button>
         </div>
 
         <div class="detail-section">
@@ -225,6 +202,8 @@
     </div>
 
     <script>
+        // ==========================================
+        // ⚠️【請填入你的 Firebase Config】
         const firebaseConfig = {
             apiKey: "AIzaSyDEKjRwWI6vkCg-dIsv1I4BamcC34UaJTU",
             authDomain: "te-interiorlab.firebaseapp.com",
@@ -234,6 +213,7 @@
             appId: "1:402097472858:web:e21b7e698c848efa271f63",
             measurementId: "G-RLWZVP7R3Z"
         };
+        // ==========================================
 
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
@@ -248,661 +228,294 @@
         let designProjects = [], engProjects = [];
         let currentType = '', currentId = '', calDate = new Date(), addModeType = '', tempPhotoData = '', currentPaymentTab = 'design';
         let draggedItem = null, touchDragSrcIndex = null, tempPhotoFile = null;
-        let isEditMode = false;
 
         window.onload = () => {
             document.getElementById('loading-overlay').style.display = 'flex';
             document.getElementById('loading-msg').innerText = '正在匿名登入...';
             
-            auth.signInAnonymously().then(() => {
-                document.getElementById('loading-msg').innerText = '載入資料中...';
-                initFirestoreListeners();
-            }).catch(e => alert("Auth Error: " + e.message));
+            auth.signInAnonymously()
+                .then(() => {
+                    console.log("登入成功");
+                    document.getElementById('loading-msg').innerText = '載入資料中...';
+                    initFirestoreListeners();
+                })
+                .catch((error) => {
+                    console.error("登入失敗:", error);
+                    alert("登入失敗 (Auth Error): " + error.message + "\n\n請檢查 Authorized Domains 設定。");
+                    document.getElementById('loading-overlay').style.display = 'none';
+                });
         };
 
         function initFirestoreListeners() {
-            db.collection("design_projects").onSnapshot(snap => {
-                designProjects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            db.collection("design_projects").onSnapshot((snapshot) => {
+                designProjects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 refreshUI();
-            });
-            db.collection("eng_projects").onSnapshot(snap => {
-                engProjects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            }, (err) => handleReadError(err));
+            
+            db.collection("eng_projects").onSnapshot((snapshot) => {
+                engProjects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 refreshUI();
                 document.getElementById('loading-overlay').style.display = 'none';
-            });
+            }, (err) => handleReadError(err));
+        }
+
+        function handleReadError(err) {
+            console.error(err);
+            document.getElementById('loading-overlay').style.display = 'none';
+            if (err.code === 'permission-denied') {
+                alert("讀取失敗：權限不足。請檢查 Firebase Rules (request.auth != null)。");
+            }
         }
 
         function refreshUI() {
-            renderHomeCounts();
             if(document.getElementById('home-page').classList.contains('active')) { renderCalendar(); checkAlerts(); } 
             else if (document.getElementById('design-list-page').classList.contains('active')) renderList('design');
             else if (document.getElementById('engineering-list-page').classList.contains('active')) renderList('engineering');
             else if (document.getElementById('warranty-list-page').classList.contains('active')) renderList('warranty');
             else if (document.getElementById('payment-page').classList.contains('active')) renderPaymentPage();
-            else if (document.getElementById('project-detail-page').classList.contains('active') && currentId) {
-                // 如果正在詳情頁且有資料更新，即時重繪 (保持輸入焦點可能需要更複雜邏輯，這裡簡單重繪)
-                // loadProject(currentId, currentType); 
-            }
-        }
-        
-        function renderHomeCounts() {
-            const dCount = designProjects.filter(p=>p.status!=='completed').length;
-            const eCount = engProjects.filter(p=>p.status==='active'||p.status==='suspended').length;
-            const wCount = engProjects.filter(p=>p.status==='warranty').length;
-            document.getElementById('cnt-design').innerText = dCount;
-            document.getElementById('cnt-eng').innerText = eCount;
-            document.getElementById('cnt-warranty').innerText = wCount;
-        }
-
-        // --- Navigation ---
-        function navigateTo(pageId) {
-            clearTempData();
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            const back = document.getElementById('back-btn');
-            const title = document.getElementById('page-title');
-            
-            if (pageId === 'home-page') {
-                back.style.display = 'none';
-                title.innerText = '對錯空間實驗室';
-                refreshUI();
-            } else {
-                back.style.display = 'block';
-                if (pageId === 'design-list-page') { title.innerText = '設計案件列表'; renderList('design'); }
-                else if (pageId === 'engineering-list-page') { title.innerText = '工程案件列表'; renderList('engineering'); }
-                else if (pageId === 'warranty-list-page') { title.innerText = '完工保固列表'; renderList('warranty'); }
-                else if (pageId === 'payment-page') { title.innerText = '收款進度'; renderPaymentPage(); }
-                else if (pageId === 'project-detail-page') {
-                    title.innerText = currentType === 'design' ? '設計案件詳情' : '工程案件詳情';
-                    document.getElementById('warranty-date-row').style.display = currentType === 'warranty' ? 'block' : 'none';
-                    document.getElementById('design-price-row').style.display = currentType === 'design' ? 'block' : 'none';
-                    document.getElementById('engineering-price-row').style.display = currentType === 'engineering' || currentType === 'warranty' ? 'block' : 'none';
-                    document.getElementById('add-payment-btn').style.display = currentType === 'engineering' ? 'block' : 'none';
-                    loadProject(currentId, currentType);
-                }
-            }
-            window.scrollTo(0, 0);
-        }
-
-        function goBack() {
-            if (document.getElementById('project-detail-page').classList.contains('active')) {
-                if (currentType === 'design') navigateTo('design-list-page');
-                else if (currentType === 'engineering') navigateTo('engineering-list-page');
-                else if (currentType === 'warranty') navigateTo('warranty-list-page');
-            } else {
-                navigateTo('home-page');
-            }
-        }
-
-        // --- List & Detail Logic ---
-        function renderList(type) {
-            let list = [], containerId = '', listHtml = '';
-            if (type === 'design') {
-                list = designProjects.filter(p => p.status !== 'completed');
-                containerId = 'design-list-container';
-            } else if (type === 'engineering') {
-                list = engProjects.filter(p => p.status === 'active' || p.status === 'suspended');
-                containerId = 'engineering-list-container';
-            } else if (type === 'warranty') {
-                list = engProjects.filter(p => p.status === 'warranty');
-                containerId = 'warranty-list-container';
-            }
-
-            list.forEach(p => {
-                const totalStages = (p.stageOrder || []).length;
-                let doneStages = 0;
-                (p.stageOrder || []).forEach(k => {
-                    if (p.stages && p.stages[k] && p.stages[k].completed) doneStages++;
-                });
-                const pct = totalStages === 0 ? 0 : Math.round((doneStages / totalStages) * 100);
-                
-                let tagHtml = '';
-                if(p.status === 'suspended') tagHtml = '<span class="tag tag-suspend">停工</span>';
-                if(p.status === 'warranty') tagHtml = '<span class="tag tag-warranty">保固中</span>';
-
-                listHtml += `
-                <div class="project-card" onclick="openProject('${p.id}', '${type}')">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div>
-                            <div style="font-weight:bold; font-size:1.1rem; color:var(--text-primary);">${p.name} ${tagHtml}</div>
-                            <div style="color:var(--text-secondary); font-size:0.9rem; margin-top:5px;">${p.client || '未填寫'} / ${p.address || '未填寫'}</div>
-                        </div>
-                        <div style="font-size:1.5rem; color:var(--text-secondary);">›</div>
-                    </div>
-                    <div class="card-progress-text">進度 ${pct}%</div>
-                    <div class="progress-bg"><div class="progress-fill" style="width:${pct}%"></div></div>
-                </div>`;
-            });
-
-            if (list.length === 0) listHtml = '<div style="text-align:center; padding:20px; color:var(--text-secondary);">目前沒有案件</div>';
-            document.getElementById(containerId).innerHTML = listHtml;
-        }
-
-        function openProject(id, type) {
-            currentId = id;
-            currentType = type;
-            isEditMode = false;
-            document.getElementById('btn-edit-mode').classList.remove('active');
-            document.getElementById('btn-add-stage').style.display = 'none';
-            navigateTo('project-detail-page');
-        }
-
-        function loadProject(id, type) {
-            const list = type === 'design' ? designProjects : engProjects;
-            const p = list.find(x => x.id === id);
-            if (!p) return;
-
-            document.getElementById('d-name').value = p.name || '';
-            document.getElementById('d-client').value = p.client || '';
-            document.getElementById('d-phone').value = p.phone || '';
-            document.getElementById('d-address').value = p.address || '';
-            document.getElementById('d-parking').value = p.parking || '';
-            document.getElementById('d-code').value = p.code || '';
-
-            if (type === 'design') {
-                const price = p.designPrice || 0;
-                document.getElementById('d-design-price').value = price ? formatNumber(price) : '';
-            } else {
-                const base = p.engBasePrice || 0;
-                const vari = p.engVarPrice || 0;
-                document.getElementById('d-eng-base').value = base ? formatNumber(base) : '';
-                document.getElementById('d-eng-var').value = vari ? formatNumber(vari) : '';
-                calculateTotalEng(p);
-                if (type === 'warranty') document.getElementById('d-warranty-date').value = p.warrantyDate || '';
-            }
-
-            if (!p.stageOrder || p.stageOrder.length === 0) {
-                p.stageOrder = type === 'design' ? [...DEFAULT_DESIGN_ORDER] : [...DEFAULT_ENG_ORDER];
-            }
-            if (!p.stages) p.stages = {};
-
-            renderStages(p, type);
-            renderDetailPayment(p, type);
-            renderLogs(p);
-            renderActionBar(p, type);
         }
 
         async function updateCloud(collection, id, data) { await db.collection(collection).doc(id).update(data); }
-        
         function updateField(key, value) {
             const collection = currentType === 'design' ? "design_projects" : "eng_projects";
-            let val = value;
-            if (['designPrice','engBasePrice','engVarPrice'].includes(key)) val = parseCurrency(value);
-            
-            const list = currentType === 'design' ? designProjects : engProjects;
-            const p = list.find(x => x.id === currentId);
-            if(p) { 
-                p[key] = val; 
-                if(key.startsWith('eng')) calculateTotalEng(p);
-            }
+            const val = (key === 'designPrice' || key === 'engPrice') ? parseCurrency(value) : value;
             updateCloud(collection, currentId, { [key]: val });
         }
 
-        function calculateTotalEng(p) {
-            const base = parseInt(p.engBasePrice) || 0;
-            const variable = parseInt(p.engVarPrice) || 0;
-            const total = base + variable;
-            document.getElementById('d-eng-total').innerText = '$' + formatNumber(total);
-        }
+        async function createProject() {
+            const name = document.getElementById('new-name').value;
+            if (!name) return alert("請輸入案件名稱");
+            
+            const collection = addModeType === 'design' ? "design_projects" : "eng_projects";
+            const newObj = {
+                name: name, stages: {}, logs: [], status: 'active', designPrice: 0, engPrice: 0, payments: [],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
 
-        function toggleEditMode() {
-            isEditMode = !isEditMode;
-            const btn = document.getElementById('btn-edit-mode');
-            const addBtn = document.getElementById('btn-add-stage');
-            if(isEditMode) {
-                btn.classList.add('active');
-                if(currentType !== 'design') addBtn.style.display = 'block';
+            if (addModeType === 'design') {
+                newObj.payments = [ { name: '簽約金 (50%)', ratio: 0.5, done: false, date: '' }, { name: '尾款 (50%)', ratio: 0.5, done: false, date: '' } ];
+                newObj.stageOrder = [...DEFAULT_DESIGN_ORDER];
             } else {
-                btn.classList.remove('active');
-                addBtn.style.display = 'none';
+                newObj.stageOrder = [...DEFAULT_ENG_ORDER];
             }
-            const list = currentType === 'design' ? designProjects : engProjects;
-            const p = list.find(x => x.id === currentId);
-            renderStages(p, currentType);
-        }
-
-        async function addCustomStage() {
-            const name = prompt("請輸入工程項目名稱:");
-            if(!name) return;
-            const sid = 'cust_' + Date.now();
-            const list = engProjects;
-            const p = list.find(x => x.id === currentId);
             
-            if(!p.stages) p.stages = {};
-            p.stages[sid] = { name: name, enabled: true, custom: true, start:'', end:'', vendor:'', cost:'' };
-            p.stageOrder.push(sid);
+            document.getElementById('loading-overlay').style.display = 'flex';
+            document.getElementById('loading-msg').innerText = '建立案件中...';
             
-            await updateCloud("eng_projects", currentId, { 
-                [`stages.${sid}`]: p.stages[sid],
-                stageOrder: p.stageOrder
-            });
-            renderStages(p, 'engineering');
-        }
-
-        // --- Render Stages ---
-        function renderStages(p, type) {
-            const container = document.getElementById('checklist-container');
-            container.innerHTML = '';
-            const defs = type === 'design' ? STAGES_DESIGN_DEF : STAGES_ENG_DEF;
-
-            p.stageOrder.forEach((key, index) => {
-                let stageData = p.stages[key] || {};
-                let name = stageData.name || defs[key] || '未命名項目';
-                let isEnabled = stageData.enabled !== false; 
-                let isChecked = stageData.completed === true;
-
-                if (!isEditMode && !isEnabled) return;
-
-                const el = document.createElement('div');
-                el.className = `checklist-item ${isEnabled ? '' : 'disabled'} ${isChecked ? 'checked' : ''}`;
-                el.dataset.key = key;
+            try {
+                const docRef = await db.collection(collection).add(newObj);
                 
-                if (isEditMode) {
-                    el.draggable = true;
-                    el.addEventListener('dragstart', handleDragStart);
-                    el.addEventListener('dragover', handleDragOver);
-                    el.addEventListener('drop', handleDrop);
-                    el.addEventListener('dragend', handleDragEnd);
-                    el.addEventListener('touchstart', handleTouchStart, {passive: false});
-                    el.addEventListener('touchmove', handleTouchMove, {passive: false});
-                    el.addEventListener('touchend', handleTouchEnd);
-                }
+                // 手動推入本地陣列
+                newObj.id = docRef.id;
+                if(addModeType === 'design') designProjects.push(newObj);
+                else engProjects.push(newObj);
 
-                let headerHtml = `<div class="check-header">`;
-                if (isEditMode) {
-                    headerHtml += `
-                        <div class="drag-handle">≡ <span style="font-size:1rem; margin-left:10px;">${name}</span></div>
-                        <label class="toggle-switch"><input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="toggleStageEnable('${key}', this.checked)"><span class="slider"></span></label>
-                    `;
-                } else {
-                    headerHtml += `
-                        <div style="display:flex; align-items:center;">
-                            <div class="custom-checkbox" onclick="toggleStageCheck('${key}')"></div>
-                            <span style="font-size:1rem; font-weight:500;">${name}</span>
-                        </div>
-                    `;
-                }
-                headerHtml += `</div>`;
-
-                let detailsHtml = '';
-                if (isEnabled) {
-                    detailsHtml = `
-                    <div class="stage-details">
-                        <div class="date-row">
-                            <div class="date-group"><label class="date-label">開始</label><input type="date" class="mini-date" value="${stageData.start || ''}" onchange="updateStageField('${key}', 'start', this.value)"></div>
-                            <div class="date-group"><label class="date-label">完成</label><input type="date" class="mini-date" value="${stageData.end || ''}" onchange="updateStageField('${key}', 'end', this.value)"></div>
-                        </div>`;
-                    if (type !== 'design') {
-                        detailsHtml += `
-                        <div style="display:flex; gap:10px; margin-top:8px;">
-                            <input type="text" class="stage-selector" placeholder="廠商" value="${stageData.vendor || ''}" onchange="updateStageField('${key}', 'vendor', this.value)">
-                            <input type="text" class="stage-selector" placeholder="成本" value="${stageData.cost || ''}" onchange="updateStageField('${key}', 'cost', this.value)">
-                        </div>`;
-                    }
-                    detailsHtml += `</div>`;
-                }
-                el.innerHTML = headerHtml + detailsHtml;
-                container.appendChild(el);
-            });
-        }
-
-        async function toggleStageCheck(key) {
-            const list = currentType === 'design' ? designProjects : engProjects;
-            const p = list.find(x => x.id === currentId);
-            if (!p.stages) p.stages = {};
-            if (!p.stages[key]) p.stages[key] = {};
-            p.stages[key].completed = !p.stages[key].completed;
-            renderStages(p, currentType);
-            await updateCloud(currentType === 'design' ? "design_projects" : "eng_projects", currentId, { [`stages.${key}.completed`]: p.stages[key].completed });
-        }
-
-        async function toggleStageEnable(key, isEnabled) {
-            const list = currentType === 'design' ? designProjects : engProjects;
-            const p = list.find(x => x.id === currentId);
-            if (!p.stages) p.stages = {};
-            if (!p.stages[key]) p.stages[key] = {};
-            p.stages[key].enabled = isEnabled;
-            await updateCloud(currentType === 'design' ? "design_projects" : "eng_projects", currentId, { [`stages.${key}.enabled`]: isEnabled });
-        }
-
-        async function updateStageField(key, field, value) {
-            const list = currentType === 'design' ? designProjects : engProjects;
-            const p = list.find(x => x.id === currentId);
-            if (!p.stages) p.stages = {};
-            if (!p.stages[key]) p.stages[key] = {};
-            p.stages[key][field] = value;
-            await updateCloud(currentType === 'design' ? "design_projects" : "eng_projects", currentId, { [`stages.${key}.${field}`]: value });
-        }
-
-        // --- Drag & Drop ---
-        function handleDragStart(e) { draggedItem = this; this.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
-        function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; }
-        function handleDragEnd(e) { this.classList.remove('dragging'); draggedItem = null; }
-        async function handleDrop(e) {
-            e.stopPropagation();
-            if (draggedItem !== this) {
-                const container = document.getElementById('checklist-container');
-                const allItems = [...container.querySelectorAll('.checklist-item')];
-                const fromIndex = allItems.indexOf(draggedItem);
-                const toIndex = allItems.indexOf(this);
-                const list = currentType === 'design' ? designProjects : engProjects;
-                const p = list.find(x => x.id === currentId);
-                const itemToMove = p.stageOrder.splice(fromIndex, 1)[0];
-                p.stageOrder.splice(toIndex, 0, itemToMove);
-                renderStages(p, currentType);
-                await updateCloud(currentType === 'design' ? "design_projects" : "eng_projects", currentId, { stageOrder: p.stageOrder });
-            }
-            return false;
-        }
-        function handleTouchStart(e) { touchDragSrcIndex = [...this.parentNode.children].indexOf(this); this.style.opacity = '0.5'; }
-        function handleTouchMove(e) { e.preventDefault(); }
-        async function handleTouchEnd(e) { this.style.opacity = '1'; }
-
-        // --- Payments & Profit ---
-        function renderDetailPayment(p, type) {
-            const container = document.getElementById('detail-payment-container');
-            container.innerHTML = '';
-            
-            if (type === 'design') {
-                container.innerHTML = `<div style="color:var(--text-secondary); font-size:0.9rem;">設計費總額設定如上。</div>`;
-                return;
-            }
-
-            if (!p.payments) p.payments = [];
-            
-            p.payments.forEach((pay, index) => {
-                const isPaid = pay.paid === true;
-                const amount = pay.amount ? formatNumber(pay.amount) : '0';
+                document.getElementById('loading-overlay').style.display = 'none';
+                closeAddModal();
                 
-                const html = `
-                <div class="payment-row">
-                    <div class="payment-header">
-                        <div class="payment-check-area ${isPaid ? 'checked' : ''}" onclick="togglePaymentPaid(${index})">
-                            <span style="font-weight:bold; color:var(--text-primary);">第 ${index + 1} 期 - ${pay.name || '款項'}</span>
-                        </div>
-                        <button style="background:none; border:none; color:var(--red); font-size:1.2rem;" onclick="deletePayment(${index})">×</button>
-                    </div>
-                    <div style="display:flex; gap:10px; width:100%;">
-                         <div style="flex:1"><label class="input-label">金額</label><input type="text" class="detail-input" value="${amount}" onblur="updatePaymentField(${index}, 'amount', this.value)" onfocus="toNum(this)" style="text-align:right; color:var(--teal);"></div>
-                         <div style="flex:1"><label class="input-label">預計收款日</label><input type="date" class="detail-input" value="${pay.date || ''}" onchange="updatePaymentField(${index}, 'date', this.value)" style="color-scheme:dark;"></div>
-                    </div>
-                </div>`;
-                container.insertAdjacentHTML('beforeend', html);
-            });
-            calculateProfit(p);
-        }
-
-        async function addEngineeringPaymentStage() {
-            const list = engProjects;
-            const p = list.find(x => x.id === currentId);
-            if (!p.payments) p.payments = [];
-            p.payments.push({ name: '新期數', amount: 0, date: '', paid: false });
-            renderDetailPayment(p, 'engineering');
-            await updateCloud("eng_projects", currentId, { payments: p.payments });
-        }
-
-        async function deletePayment(index) {
-            if(!confirm('確定刪除此期款項？')) return;
-            const list = engProjects;
-            const p = list.find(x => x.id === currentId);
-            p.payments.splice(index, 1);
-            renderDetailPayment(p, 'engineering');
-            await updateCloud("eng_projects", currentId, { payments: p.payments });
-        }
-
-        async function updatePaymentField(index, field, val) {
-            const list = engProjects;
-            const p = list.find(x => x.id === currentId);
-            let finalVal = val;
-            if (field === 'amount') finalVal = parseCurrency(val);
-            p.payments[index][field] = finalVal;
-            if(field === 'amount') renderDetailPayment(p, 'engineering');
-            await updateCloud("eng_projects", currentId, { payments: p.payments });
-        }
-
-        async function togglePaymentPaid(index) {
-            const list = engProjects;
-            const p = list.find(x => x.id === currentId);
-            p.payments[index].paid = !p.payments[index].paid;
-            renderDetailPayment(p, 'engineering');
-            await updateCloud("eng_projects", currentId, { payments: p.payments });
-        }
-
-        function calculateProfit(p) {
-            const income = (parseInt(p.engBasePrice) || 0) + (parseInt(p.engVarPrice) || 0);
-            let cost = 0;
-            if (p.stages) {
-                Object.values(p.stages).forEach(s => {
-                    if (s.cost) cost += (parseInt(s.cost.replace(/,/g, '')) || 0);
-                });
-            }
-            const profit = income - cost;
-            const profitRate = income > 0 ? Math.round((profit / income) * 100) : 0;
-            const colorClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
-
-            let box = document.getElementById('profit-box-display');
-            if(box) {
-                box.innerHTML = `
-                <div class="profit-title">財務試算 (自動計算)</div>
-                <div class="profit-row"><span>總請款 (收入)</span> <span>$${formatNumber(income)}</span></div>
-                <div class="profit-row"><span>總發包 (成本)</span> <span>$${formatNumber(cost)}</span></div>
-                <div class="profit-final ${colorClass}">
-                    <span>預估毛利 (${profitRate}%)</span>
-                    <span>$${formatNumber(profit)}</span>
-                </div>`;
+                // 直接開啟
+                openDetail(addModeType, docRef.id);
+            } catch (error) {
+                console.error("建立失敗:", error);
+                document.getElementById('loading-overlay').style.display = 'none';
+                alert("建立失敗：" + error.message);
             }
         }
 
-        // --- Logs ---
-        function renderLogs(p) {
-            const container = document.getElementById('log-list-container');
-            container.innerHTML = '';
-            const logs = p.logs || [];
-            logs.sort((a, b) => new Date(b.date) - new Date(a.date));
-            logs.forEach((log, index) => {
-                const imgHtml = log.image ? `<img src="${log.image}" class="log-image" onclick="window.open(this.src)">` : '';
-                const html = `
-                <div class="log-item">
-                    <button class="log-delete" onclick="deleteLog(${index})">×</button>
-                    <div class="log-date">${log.date}</div>
-                    <div class="log-content">${log.content}</div>
-                    ${imgHtml}
-                </div>`;
-                container.insertAdjacentHTML('beforeend', html);
-            });
-        }
-
-        async function addLog() {
-            const date = document.getElementById('new-log-date').value;
-            const content = document.getElementById('new-log-text').value;
-            if (!date || !content) { alert('請填寫日期與內容'); return; }
+        async function addLog(){
+            const d=document.getElementById('new-log-date').value, t=document.getElementById('new-log-text').value; 
+            if(!d)return alert('請選擇日期'); if(!t&&!tempPhotoFile)return alert('請輸入內容或選擇照片'); 
+            
             document.getElementById('loading-overlay').style.display = 'flex';
             document.getElementById('loading-msg').innerText = '上傳中...';
 
-            let imgUrl = '';
-            if (tempPhotoFile) {
-                const ref = storage.ref().child(`logs/${Date.now()}_${tempPhotoFile.name}`);
-                await ref.put(tempPhotoFile);
-                imgUrl = await ref.getDownloadURL();
+            let photoUrl = '';
+            if(tempPhotoFile) {
+                try {
+                    const storageRef = storage.ref();
+                    const fileRef = storageRef.child(`project_logs/${Date.now()}_${tempPhotoFile.name}`);
+                    await fileRef.put(tempPhotoFile);
+                    photoUrl = await fileRef.getDownloadURL();
+                } catch(e) {
+                    console.error("Upload error:", e);
+                    alert("上傳失敗: " + e.message + "\n(請確認 Storage Rules)");
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    return;
+                }
             }
 
-            const list = currentType === 'design' ? designProjects : engProjects;
             const collection = currentType === 'design' ? "design_projects" : "eng_projects";
+            const list = currentType === 'design' ? designProjects : engProjects;
             const p = list.find(x => x.id === currentId);
-            if (!p.logs) p.logs = [];
-            p.logs.push({ date: date, content: content, image: imgUrl, timestamp: Date.now() });
+            const newLog = { id: Date.now(), date: d, content: t, photo: photoUrl };
+            const updatedLogs = [...(p.logs || []), newLog];
 
-            await updateCloud(collection, currentId, { logs: p.logs });
-            clearTempData();
+            await updateCloud(collection, currentId, { logs: updatedLogs });
+            p.logs = updatedLogs; 
+            renderLogs(p);
+
             document.getElementById('loading-overlay').style.display = 'none';
-            renderLogs(p);
+            clearTempData();
+            document.getElementById('new-log-date').value = new Date().toISOString().split('T')[0];
         }
 
-        async function deleteLog(index) {
-            if(!confirm('確定刪除此紀錄？')) return;
-            const list = currentType === 'design' ? designProjects : engProjects;
-            const p = list.find(x => x.id === currentId);
-            p.logs.splice(index, 1);
-            await updateCloud(currentType === 'design' ? "design_projects" : "eng_projects", currentId, { logs: p.logs });
-            renderLogs(p);
-        }
-
-        // --- Action Bar ---
-        function renderActionBar(p, type) {
-            const container = document.getElementById('action-bar-container');
-            container.innerHTML = '';
-            let btns = `<button class="action-btn btn-del" onclick="deleteProject()">刪除案件</button>`;
-
-            if (p.status === 'active' || !p.status) {
-                btns += `<button class="action-btn btn-suspend" onclick="setStatus('suspended')">設為停工</button>`;
-                if (type === 'design') btns += `<button class="action-btn btn-done" onclick="setStatus('completed')">設計結案</button>`;
-                else btns += `<button class="action-btn btn-warranty" onclick="setStatus('warranty')">完工轉保固</button>`;
-            } else if (p.status === 'suspended') {
-                btns += `<button class="action-btn btn-track" onclick="setStatus('active')">恢復進行</button>`;
-            } else if (p.status === 'warranty') {
-                btns += `<button class="action-btn btn-done" onclick="setStatus('completed')">保固結束歸檔</button>`;
-            }
-            container.innerHTML = btns;
-        }
-
-        async function setStatus(newStatus) {
-            if(!confirm('確定變更案件狀態？')) return;
-            let updates = { status: newStatus };
-            if (newStatus === 'warranty') updates.warrantyDate = new Date().toISOString().split('T')[0];
-            await updateCloud(currentType === 'design' ? "design_projects" : "eng_projects", currentId, updates);
-            alert('狀態已更新');
-            goBack();
-        }
-
-        async function deleteProject() {
-            const verify = prompt("請輸入 'DELETE' 以確認刪除案件 (不可復原):");
-            if (verify !== 'DELETE') return;
-            const collection = currentType === 'design' ? "design_projects" : "eng_projects";
-            await db.collection(collection).doc(currentId).delete();
-            alert('案件已刪除');
-            goBack();
-        }
-
-        // --- Payment Page ---
-        function renderPaymentPage() {
-            const container = document.getElementById('payment-content-container');
-            container.innerHTML = '';
-            if (currentPaymentTab === 'design') {
-                 container.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">設計合約收款總覽功能開發中...</div>';
-                 return;
-            }
-            const list = engProjects.filter(p => p.status === 'active');
-            let totalUnpaid = 0;
-            list.forEach(p => {
-                if (!p.payments || p.payments.length === 0) return;
-                const unpaids = p.payments.filter(pay => !pay.paid);
-                if (unpaids.length === 0) return;
-                let itemsHtml = '';
-                unpaids.forEach(pay => {
-                    const amt = parseInt((pay.amount+'').replace(/,/g,'')) || 0;
-                    totalUnpaid += amt;
-                    itemsHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.9rem; border-bottom:1px solid #444; padding-bottom:4px;">
-                        <span>${pay.name} (${pay.date || '未定'})</span><span style="color:var(--yellow);">$${formatNumber(amt)}</span>
-                    </div>`;
-                });
-                const card = `<div class="payment-card"><div class="payment-title" onclick="openProject('${p.id}', 'engineering')">${p.name}</div><div style="margin-top:10px;">${itemsHtml}</div></div>`;
-                container.insertAdjacentHTML('beforeend', card);
-            });
-            const header = `<div style="padding:15px; font-size:1.2rem; color:var(--teal); text-align:right;">本月預估待收: $${formatNumber(totalUnpaid)}</div>`;
-            container.insertAdjacentHTML('afterbegin', header);
-        }
-        function switchPaymentTab(tab) {
-            currentPaymentTab = tab;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-' + tab).classList.add('active');
-            renderPaymentPage();
-        }
-
-        // --- Utils & Modals ---
-        function formatNumber(num) { return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
-        function parseCurrency(str) { if(!str) return 0; return parseInt(str.toString().replace(/,/g, '')) || 0; }
+        function clearTempData() { tempPhotoData = ''; tempPhotoFile = null; const p=document.getElementById('new-log-preview'); if(p){p.src='';p.style.display='none';} document.getElementById('log-photo-upload').value=''; document.getElementById('new-log-text').value=''; }
         function toNum(el) { el.value = el.value.replace(/,/g, ''); }
         function toCur(el) { let v = parseInt(el.value.replace(/,/g, '')) || 0; el.value = v > 0 ? formatNumber(v) : ''; }
-        
-        function clearTempData() { tempPhotoData = ''; tempPhotoFile = null; const p=document.getElementById('new-log-preview'); if(p){p.src='';p.style.display='none';} document.getElementById('log-photo-upload').value=''; document.getElementById('new-log-text').value=''; }
         function handleTempPhoto(i){if(i.files&&i.files[0]){tempPhotoFile = i.files[0]; const r=new FileReader(); r.onload=e=>{document.getElementById('new-log-preview').src=e.target.result; document.getElementById('new-log-preview').style.display='block';}; r.readAsDataURL(i.files[0]);}}
         
-        function openAddModal(type) {
-            addModeType = type;
-            document.getElementById('add-modal').style.display = 'flex';
-            document.getElementById('modal-title').innerText = type === 'design' ? '新增設計案件' : '新增工程案件';
-            document.getElementById('new-name').value = '';
-            document.getElementById('new-name').focus();
+        function navigateTo(pageId) { 
+            clearTempData(); 
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); 
+            document.getElementById(pageId).classList.add('active'); 
+            const back = document.getElementById('back-btn'); 
+            const title = document.getElementById('page-title'); 
+            if (pageId === 'home-page') { 
+                back.style.display = 'none'; title.innerText = '對錯空間實驗室'; renderCalendar(); checkAlerts(); 
+            } else { 
+                back.style.display = 'block'; back.onclick = () => goBack(); 
+                if (pageId === 'design-list-page') { title.innerText = '設計案件列表'; renderList('design'); } 
+                else if (pageId === 'engineering-list-page') { title.innerText = '工程案件列表'; renderList('engineering'); } 
+                else if (pageId === 'warranty-list-page') { title.innerText = '完工保固列表'; renderList('warranty'); } 
+                else if (pageId === 'payment-page') { title.innerText = '收款進度'; renderPaymentPage(); } 
+                else if (pageId === 'project-detail-page') { title.innerText = getDetailTitle(); } 
+            } 
         }
-        function closeAddModal() { document.getElementById('add-modal').style.display = 'none'; }
-        async function createProject() {
-            const name = document.getElementById('new-name').value;
-            if(!name) return;
-            const collection = addModeType === 'design' ? "design_projects" : "eng_projects";
-            await db.collection(collection).add({ name: name, status: 'active', createdAt: new Date().toISOString() });
-            closeAddModal();
+        function getDetailTitle() { return currentType === 'design' ? '設計詳情' : currentType === 'engineering' ? '工程詳情' : '保固詳情'; }
+        function goBack() { 
+            clearTempData(); 
+            if(document.getElementById('project-detail-page').classList.contains('active') && document.referrer === 'payment') { navigateTo('payment-page'); return; } 
+            if(document.getElementById('project-detail-page').classList.contains('active')) navigateTo(currentType === 'design' ? 'design-list-page' : (currentType === 'engineering' ? 'engineering-list-page' : 'warranty-list-page')); 
+            else navigateTo('home-page'); 
         }
 
-        // --- Calendar ---
-        function renderCalendar() {
-            const y = calDate.getFullYear();
-            const m = calDate.getMonth();
-            document.getElementById('cal-month-year').innerText = `${y}年 ${m+1}月`;
-            const firstDay = new Date(y, m, 1).getDay();
-            const daysInMonth = new Date(y, m + 1, 0).getDate();
-            const container = document.getElementById('calendar-days');
-            container.innerHTML = '';
-            for(let i=0; i<firstDay; i++) container.innerHTML += `<div></div>`;
-            
-            const events = [];
-            [...designProjects, ...engProjects].forEach(p => {
-               if(p.stages) {
-                   Object.entries(p.stages).forEach(([k, s]) => {
-                       if(s.end && !s.completed) {
-                           const d = new Date(s.end);
-                           if(d.getFullYear() === y && d.getMonth() === m) events.push({ date: d.getDate(), name: p.name, task: s.name });
-                       }
-                   });
-               } 
-            });
+        async function deleteLog(lid){ 
+            if(!confirm('刪除?'))return; 
+            const collection = currentType === 'design' ? "design_projects" : "eng_projects"; 
+            const list = currentType === 'design' ? designProjects : engProjects; 
+            const p = list.find(x => x.id === currentId); 
+            const updatedLogs = p.logs.filter(k=>k.id!==lid); 
+            await updateCloud(collection, currentId, { logs: updatedLogs }); 
+            p.logs = updatedLogs; renderLogs(p); 
+        }
 
-            for(let i=1; i<=daysInMonth; i++) {
-                const hasEvent = events.some(e => e.date === i);
-                const isToday = new Date().toDateString() === new Date(y, m, i).toDateString();
-                let dot = hasEvent ? `<div class="dot" style="background:var(--blue); margin-top:2px;"></div>` : '';
-                const el = document.createElement('div');
-                el.className = `cal-date ${isToday ? 'active' : ''}`;
-                el.innerHTML = `<span>${i}</span><div class="cal-bar-container">${dot}</div>`;
-                el.onclick = () => showEvents(i, events.filter(e => e.date === i));
-                container.appendChild(el);
+        function openDetail(type, id) { 
+            try {
+                clearTempData(); currentType = type; currentId = id; 
+                const list = type === 'design' ? designProjects : engProjects; 
+                const p = list.find(x => x.id === id); 
+                
+                if(!p) {
+                    alert("找不到案件資料，請稍後再試 (Syncing...)");
+                    return; 
+                }
+
+                ['name', 'client', 'phone', 'address', 'parking', 'code'].forEach(key => { document.getElementById('d-' + key).value = p[key] || ''; }); 
+                const dPriceRow = document.getElementById('design-price-row'); 
+                const ePriceRow = document.getElementById('engineering-price-row'); 
+                const wDateRow = document.getElementById('warranty-date-row'); 
+                const payBtn = document.getElementById('add-payment-btn'); 
+                dPriceRow.style.display = 'none'; ePriceRow.style.display = 'none'; wDateRow.style.display = 'none'; payBtn.style.display = 'none'; 
+                
+                if (type === 'design') { 
+                    dPriceRow.style.display = 'block'; document.getElementById('d-design-price').value = p.designPrice ? formatNumber(p.designPrice) : ''; 
+                    if(!p.stageOrder) p.stageOrder = [...DEFAULT_DESIGN_ORDER]; 
+                    document.getElementById('stages-title').innerText = '設計階段 (可拖曳排序)'; 
+                } else { 
+                    ePriceRow.style.display = 'block'; document.getElementById('d-eng-price').value = p.engPrice ? formatNumber(p.engPrice) : ''; 
+                    if(type === 'engineering') payBtn.style.display = 'block'; 
+                    if(!p.stageOrder) p.stageOrder = [...DEFAULT_ENG_ORDER]; 
+                    document.getElementById('stages-title').innerText = '工程階段 (可拖曳排序)'; 
+                } 
+                if (type === 'warranty' && p.warrantyDate) { wDateRow.style.display = 'block'; document.getElementById('d-warranty-date').value = p.warrantyDate; } 
+                
+                renderDetailPayments(p, type); renderStages(p, type); renderLogs(p); 
+                document.getElementById('new-log-date').value = new Date().toISOString().split('T')[0]; 
+                renderActionBar(type, p.status); 
+                navigateTo('project-detail-page');
+            } catch(e) {
+                console.error(e);
+                alert("開啟詳情頁失敗: " + e.message);
             }
         }
-        function changeMonth(delta) { calDate.setMonth(calDate.getMonth() + delta); renderCalendar(); }
-        function showEvents(date, dayEvents) {
-            const box = document.getElementById('calendar-events');
-            if(dayEvents.length === 0) { box.innerHTML = `<div style="padding:10px;">${calDate.getMonth()+1}/${date} 無排定事項</div>`; return; }
-            let html = `<div style="font-weight:bold; margin-bottom:5px; color:var(--text-primary);">${calDate.getMonth()+1}/${date} 行程:</div>`;
-            dayEvents.forEach(e => { html += `<div class="event-item"><div class="dot" style="background:var(--blue)"></div> ${e.name} - ${e.task}</div>`; });
-            box.innerHTML = html;
-        }
-        function checkAlerts() {
-            const list = document.getElementById('alert-list');
-            const alertBox = document.getElementById('alert-dashboard');
-            list.innerHTML = '';
-            let count = 0;
-            const today = new Date().toISOString().split('T')[0];
-            [...designProjects, ...engProjects].forEach(p => {
-                if(p.status === 'completed') return;
-                if(p.stages) {
-                    Object.values(p.stages).forEach(s => {
-                        if(s.end && s.end < today && !s.completed && s.enabled !== false) {
-                            count++;
-                            list.innerHTML += `<div class="alert-item" onclick="openProject('${p.id}', '${p.hasOwnProperty('designPrice')?'design':'engineering'}')">[逾期] ${p.name}: ${s.name}</div>`;
-                        }
-                    });
+
+        async function updateStageField(sid, f, v) { const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const val = (f === 'cost') ? parseCurrency(v) : v; const updateKey = `stages.${sid}.${f}`; await updateCloud(collection, currentId, { [updateKey]: val }); }
+        async function toggleStageEnable(sid, e) { const updateKey = `stages.${sid}.enabled`; await updateCloud("eng_projects", currentId, { [updateKey]: e }); const p = engProjects.find(x => x.id === currentId); if(!p.stages[sid]) p.stages[sid]={}; p.stages[sid].enabled = e; renderStages(p, currentType); }
+        async function toggleDone(sid) { const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const newVal = !p.stages[sid].done; const updateKey = `stages.${sid}.done`; await updateCloud(collection, currentId, { [updateKey]: newVal }); p.stages[sid].done = newVal; renderStages(p, currentType); }
+        async function togglePayment(pid, idx, type) { const collection = type === 'design' ? "design_projects" : "eng_projects"; const list = type === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === pid); const newPayments = [...p.payments]; newPayments[idx].done = !newPayments[idx].done; if(newPayments[idx].done && !newPayments[idx].date) newPayments[idx].date = new Date().toISOString().split('T')[0]; await updateCloud(collection, pid, { payments: newPayments }); if(document.getElementById('payment-page').classList.contains('active')) renderPaymentPage(); else renderDetailPayments(p, type); }
+        async function updatePaymentVal(pid, idx, key, val, type) { const collection = type === 'design' ? "design_projects" : "eng_projects"; const list = type === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === pid); const newPayments = [...p.payments]; newPayments[idx][key] = val; await updateCloud(collection, pid, { payments: newPayments }); }
+        function updatePaymentAmount(pid, idx, val, type) { updatePaymentVal(pid, idx, 'amount', parseCurrency(val), type); }
+        function updatePaymentDate(pid, idx, val, type) { updatePaymentVal(pid, idx, 'date', val, type); }
+        function updatePaymentLink(pid, idx, val, type) { updatePaymentVal(pid, idx, 'linkedStage', val, type); }
+        async function addEngineeringPaymentStage() { const p = engProjects.find(x => x.id === currentId); const newPayments = [...(p.payments||[])]; newPayments.push({ name: `第 ${newPayments.length + 1} 期款`, amount: 0, done: false, date: '', linkedStage: '' }); await updateCloud("eng_projects", currentId, { payments: newPayments }); p.payments = newPayments; renderDetailPayments(p, 'engineering'); }
+        
+        // Render Detail Payments
+        function renderDetailPayments(p, type) {
+            const payContainer = document.getElementById('detail-payment-container'); payContainer.innerHTML = '';
+            const priceKey = type === 'design' ? 'designPrice' : 'engPrice'; const totalVal = p[priceKey] || 0; const paymentList = p.payments || [];
+            if(paymentList.length === 0 && type === 'engineering') payContainer.innerHTML = '<div style="color:#666; font-size:0.9rem;">尚無收款期數，請新增</div>';
+            paymentList.forEach((pay, idx) => {
+                let amountInputHtml = '';
+                if (type === 'design') { const disp = formatNumber(Math.round(totalVal * pay.ratio)); amountInputHtml = `<div style="color:var(--yellow); font-weight:bold;">$${disp}</div>`; } 
+                else { amountInputHtml = `<input type="text" class="mini-date" placeholder="金額" value="${formatNumber(pay.amount || '')}" style="width:80px; text-align:right;" onfocus="toNum(this)" onblur="toCur(this); updatePaymentAmount('${p.id}', ${idx}, this.value, 'engineering')">`; }
+                let stageSelectorHtml = '';
+                if (type === 'engineering' || type === 'warranty') {
+                    let options = '<option value="">-- 對應進度 --</option>'; const order = p.stageOrder || DEFAULT_ENG_ORDER;
+                    order.forEach(sid => { const sName = STAGES_ENG_DEF[sid]; const isStageEnabled = p.stages && p.stages[sid] && p.stages[sid].enabled !== false; if(isStageEnabled || sid === 'es_sign') { const sel = pay.linkedStage === sid ? 'selected' : ''; options += `<option value="${sid}" ${sel}>${sName}</option>`; } });
+                    stageSelectorHtml = `<select class="stage-selector" onchange="updatePaymentLink('${p.id}', ${idx}, this.value, 'engineering')">${options}</select>`;
                 }
+                payContainer.innerHTML += `<div class="payment-row"><div class="payment-header"><div class="payment-check-area" onclick="togglePayment('${p.id}', ${idx}, '${type === 'design'?'design':'engineering'}')"><div class="custom-checkbox ${pay.done ? 'checked' : ''}" style="border-color:var(--teal)"></div><span>${pay.name}</span></div><div class="payment-info-area">${amountInputHtml}<input type="date" class="mini-date" value="${pay.date}" style="width:110px; margin-top:5px;" onchange="updatePaymentDate('${p.id}', ${idx}, this.value, '${type === 'design'?'design':'engineering'}')"></div></div>${stageSelectorHtml}</div>`;
             });
-            if(count > 0) alertBox.style.display = 'block'; else alertBox.style.display = 'none';
+        }
+
+        function handleDragStart(e) { draggedItem = this; e.dataTransfer.effectAllowed = 'move'; this.classList.add('dragging'); }
+        function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; }
+        function handleDrop(e) { e.stopPropagation(); if (draggedItem !== this) { reorderStages(parseInt(draggedItem.dataset.index), parseInt(this.dataset.index)); } draggedItem.classList.remove('dragging'); return false; }
+        function handleTouchStart(e, index) { touchDragSrcIndex = index; const item = e.target.closest('.checklist-item'); if(item) item.classList.add('dragging'); }
+        function handleTouchMove(e) { e.preventDefault(); const t = e.touches[0]; const target = document.elementFromPoint(t.clientX, t.clientY); const item = target ? target.closest('.checklist-item') : null; document.querySelectorAll('.checklist-item').forEach(el => el.classList.remove('drag-over')); if (item) item.classList.add('drag-over'); }
+        function handleTouchEnd(e, index) { const t = e.changedTouches[0]; const target = document.elementFromPoint(t.clientX, t.clientY); const targetItem = target ? target.closest('.checklist-item') : null; document.querySelectorAll('.checklist-item').forEach(el => { el.classList.remove('dragging'); el.classList.remove('drag-over'); }); if (targetItem && targetItem.dataset.index !== undefined) { const newIndex = parseInt(targetItem.dataset.index); if (touchDragSrcIndex !== null && touchDragSrcIndex !== newIndex) { reorderStages(touchDragSrcIndex, newIndex); } } touchDragSrcIndex = null; }
+        async function reorderStages(oldIdx, newIdx) { const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const newOrder = [...p.stageOrder]; const item = newOrder.splice(oldIdx, 1)[0]; newOrder.splice(newIdx, 0, item); p.stageOrder = newOrder; renderStages(p, currentType); await updateCloud(collection, currentId, { stageOrder: newOrder }); }
+        async function deleteCurrentProject() { if (!confirm('確定刪除？')) return; const collection = currentType === 'design' ? "design_projects" : "eng_projects"; await db.collection(collection).doc(currentId).delete(); goBack(); }
+        async function toggleSuspend(){ const p = engProjects.find(x => x.id === currentId); const newStatus = p.status === 'suspended' ? 'active' : 'suspended'; await updateCloud("eng_projects", currentId, { status: newStatus }); goBack(); }
+        async function moveToWarranty(){ if (!confirm('確認完工?')) return; await updateCloud("eng_projects", currentId, { status: 'warranty', warrantyDate: new Date().toISOString().split('T')[0] }); navigateTo('warranty-list-page'); }
+        async function updateDesignStatus(s){ await updateCloud("design_projects", currentId, { status: s }); goBack(); }
+        async function convertToEngineering(){ if (!confirm('轉工程?')) { updateDesignStatus('completed'); return; } const pd = designProjects.find(x => x.id === currentId); await updateCloud("design_projects", currentId, { status: 'completed' }); const newObj = { name: pd.name, client: pd.client || '', phone: pd.phone || '', address: pd.address || '', parking: pd.parking || '', code: pd.code || '', logs: [], stages: {}, status: 'active', engPrice: 0, payments: [], stageOrder: [...DEFAULT_ENG_ORDER], originId: pd.id, createdAt: firebase.firestore.FieldValue.serverTimestamp() }; const docRef = await db.collection("eng_projects").add(newObj); openDetail('engineering', docRef.id); }
+        function saveCurrent() { /* Handled */ }
+        function formatNumber(num) { return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+        function parseCurrency(str) { return parseInt(str.toString().replace(/,/g, '')) || 0; }
+        function formatCurrency(input) { let v = input.value.replace(/,/g, ''); if (!v) return; input.value = v.replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+        function renderLogs(p){const c=document.getElementById('log-list-container'); c.innerHTML=''; (p.logs||[]).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(l=>{c.innerHTML+=`<div class="log-item"><button class="log-delete" onclick="deleteLog(${l.id})">×</button><div class="log-date">${l.date}</div><div class="log-content">${l.content}</div>${l.photo?`<img src="${l.photo}" class="log-image">`:''}</div>`;});}
+        function renderStages(p, type) { const container = document.getElementById('checklist-container'); container.innerHTML = ''; let order = p.stageOrder || (type === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER); let defs = type === 'design' ? STAGES_DESIGN_DEF : STAGES_ENG_DEF; let activeCount = 0, doneCount = 0; order.forEach((sid, index) => { if (!p.stages) p.stages = {}; const defaultEnabled = type === 'design' ? true : (['es_sign','es1','es2','es3'].includes(sid)); if (!p.stages[sid]) p.stages[sid] = { done: false, start: '', end: '', vendor: '', cost: '', enabled: defaultEnabled }; const sData = p.stages[sid]; const isEnabled = type === 'design' ? true : sData.enabled; if (isEnabled) { activeCount++; if (sData.done) doneCount++; } const item = document.createElement('div'); item.className = `checklist-item ${sData.done ? 'checked' : ''} ${!isEnabled ? 'disabled' : ''}`; item.draggable = true; item.dataset.index = index; item.addEventListener('dragstart', handleDragStart); item.addEventListener('dragover', handleDragOver); item.addEventListener('drop', handleDrop); let header = `<div class="check-header">`; header += `<div class="drag-handle" ontouchstart="handleTouchStart(event, ${index})" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event, ${index})">☰</div>`; if (type === 'engineering' || type === 'warranty') { header += `<label class="toggle-switch"><input type="checkbox" ${sData.enabled ? 'checked' : ''} onchange="toggleStageEnable('${sid}', this.checked)"><span class="slider"></span></label>`; } header += `<div style="flex:1; display:flex; align-items:center" onclick="${isEnabled ? `toggleDone('${sid}')` : ''}"><div class="custom-checkbox"></div><span style="font-weight:bold">${defs[sid]}</span></div></div>`; if (isEnabled) { let details = `<div class="stage-details">`; if (type === 'engineering' || type === 'warranty') { details += `<div style="display:flex; gap:10px; margin-bottom:8px;"><input type="text" class="detail-input" placeholder="廠商" value="${sData.vendor || ''}" style="flex:1; font-size:0.9rem; padding:8px;" onchange="updateStageField('${sid}','vendor',this.value)"><input type="text" class="detail-input" placeholder="發包成本" value="${formatNumber(sData.cost || '')}" style="flex:1; font-size:0.9rem; padding:8px; color:#ffccbc;" onkeyup="formatCurrency(this)" onchange="updateStageField('${sid}','cost',this.value)"></div>`; } details += `<div class="date-row"><div class="date-group"><div class="date-label">開始</div><input type="date" class="mini-date" value="${sData.start}" onchange="updateStageField('${sid}','start',this.value)"></div><div class="date-group"><div class="date-label">完成</div><input type="date" class="mini-date" value="${sData.end}" onchange="updateStageField('${sid}','end',this.value)"></div></div></div>`; item.innerHTML = header + details; } else { item.innerHTML = header; } container.appendChild(item); }); const pct = activeCount === 0 ? 0 : Math.round((doneCount / activeCount) * 100); document.getElementById('progress-display').innerText = pct + '%'; }
+        function renderList(type) { let list=[], cid=''; if(type==='design'){list=designProjects;cid='design-list-container';}else if(type==='engineering'){list=engProjects.filter(p=>p.status==='active'||p.status==='suspended');cid='engineering-list-container';}else{list=engProjects.filter(p=>p.status==='warranty');cid='warranty-list-container';} const c=document.getElementById(cid); c.innerHTML=''; list.sort((a,b)=>(a.status==='suspended'?1:-1)); if(list.length===0) c.innerHTML='<div style="text-align:center;color:#666;margin-top:30px">暫無案件</div>'; list.forEach(p=>{ const defs = type === 'design' ? STAGES_DESIGN_DEF : STAGES_ENG_DEF; const order = p.stageOrder || (type === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER); let currentProgress = '尚未開始', total = 0, done = 0; for(let i=0; i<order.length; i++) { const sid = order[i]; const s = (p.stages && p.stages[sid]) || {}; const isEnabled = type === 'design' ? true : (s.enabled !== false); if(isEnabled) { total++; if(s.done) { done++; currentProgress = defs[sid]; } } } const pct=total===0?0:Math.round((done/total)*100); let tags=''; if(p.status==='tracking')tags+='<span class="tag tag-track">追蹤中</span>'; if(p.status==='suspended')tags+='<span class="tag tag-suspend">暫緩</span>'; if(p.status==='warranty')tags+='<span class="tag tag-warranty">保固中</span>'; let oType=type==='warranty'?'engineering':type; c.innerHTML+=`<div class="project-card" onclick="openDetail('${type==='warranty'?'warranty':oType}','${p.id}')"><div style="position:relative;z-index:2;"><div style="font-weight:bold;color:var(--text-primary)">${p.name} ${tags}</div><div style="font-size:0.9rem;color:var(--text-secondary)">${p.client||''}</div><div class="card-progress-text">目前進度：${currentProgress}</div></div><div class="progress-bg"><div class="progress-fill" style="width:${pct}%"></div></div></div>`; }); }
+        function switchPaymentTab(tab) { currentPaymentTab = tab; document.getElementById('tab-design').className = tab === 'design' ? 'tab-btn active' : 'tab-btn'; document.getElementById('tab-engineering').className = tab === 'engineering' ? 'tab-btn active' : 'tab-btn'; renderPaymentPage(); }
+        function renderPaymentPage() { const container = document.getElementById('payment-content-container'); container.innerHTML = ''; const list = currentPaymentTab === 'design' ? designProjects : engProjects; if(list.length === 0) { container.innerHTML = '<div style="text-align:center;color:#666;margin-top:30px">暫無合約</div>'; return; } list.forEach(p => { const priceKey = currentPaymentTab === 'design' ? 'designPrice' : 'engPrice'; const totalStr = p[priceKey] || '未報價'; const totalVal = parseCurrency(totalStr); let profitHtml = ''; if (currentPaymentTab === 'engineering') { let totalCost = 0; Object.values(p.stages || {}).forEach(s => { if (s.enabled && s.cost) totalCost += parseInt(s.cost || 0); }); const profit = totalVal - totalCost; const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative'; profitHtml = `<div class="profit-box"><div class="profit-title">財務損益表 (僅內部顯示)</div><div class="profit-row"><span>合約總收</span> <span>$${formatNumber(totalVal)}</span></div><div class="profit-row"><span>發包總支</span> <span>$${formatNumber(totalCost)}</span></div><div class="profit-final"><span>預估毛利</span> <span class="${profitClass}">$${formatNumber(profit)}</span></div></div>`; } let paymentsHtml = ''; (p.payments || []).forEach((pay, idx) => { let amountDisplay = '待計算'; if (totalVal > 0) { if (pay.ratio) amountDisplay = formatNumber(Math.round(totalVal * pay.ratio)); else if (pay.amount) amountDisplay = formatNumber(pay.amount); } let linkedStageName = ''; if (currentPaymentTab === 'engineering' && pay.linkedStage) { const s = STAGES_ENG_DEF[pay.linkedStage]; if(s) linkedStageName = `<div style="font-size:0.8rem; color:var(--text-secondary)">連結：${s}</div>`; } paymentsHtml += `<div class="payment-row"><div class="payment-header"><div class="payment-check-area" onclick="togglePayment('${p.id}', ${idx}, '${currentPaymentTab}')"><div class="custom-checkbox ${pay.done ? 'checked' : ''}" style="border-color:var(--teal)"></div><div style="display:flex; flex-direction:column"><span>${pay.name}</span>${linkedStageName}</div></div><div class="payment-info-area"><div style="color:var(--yellow); font-weight:bold;">$${amountDisplay}</div><input type="date" class="mini-date" value="${pay.date}" style="width:110px;" onchange="updatePaymentDate('${p.id}', ${idx}, this.value, '${currentPaymentTab}')"></div></div></div>`; }); const div = document.createElement('div'); div.className = 'payment-card'; div.innerHTML = `<div class="payment-title">${p.name} <span style="font-size:0.8rem; font-weight:normal; color:#888;">(${p.client||''})</span></div><div class="payment-amount">合約總額：$${formatNumber(totalVal)}</div>${profitHtml}${paymentsHtml}`; container.appendChild(div); }); }
+        function checkAlerts(){ const l=document.getElementById('alert-list'); l.innerHTML=''; const t=new Date().toISOString().split('T')[0]; let h=false; const chk=(projs,lbl,defs)=>{projs.forEach(p=>{if(p.status==='suspended'||p.status==='warranty')return; Object.keys(p.stages||{}).forEach(sid=>{const s=p.stages[sid]; if(s.enabled!==false&&s.end&&s.end<t&&!s.done){h=true; l.innerHTML+=`<div class="alert-item" onclick="openDetail('${lbl==='設計'?'design':'engineering'}','${p.id}')">⚠️ [${lbl}] ${p.name} 延誤</div>`;}})})}; chk(designProjects,'設計',STAGES_DESIGN_DEF); engProjects.forEach(p=>{if(p.status==='suspended'||p.status==='warranty')return; Object.keys(p.stages||{}).forEach(sid=>{const s=p.stages[sid]; if(s.enabled!==false&&s.end&&s.end<t&&!s.done){h=true; l.innerHTML+=`<div class="alert-item" onclick="openDetail('engineering','${p.id}')">⚠️ [工程] ${p.name}-${STAGES_ENG_DEF[sid]} 延誤</div>`;}})}); engProjects.forEach(p=>{if(p.status==='suspended'){h=true;l.innerHTML+=`<div class="alert-item" style="color:var(--orange)" onclick="openDetail('engineering','${p.id}')">⛔ [暫緩] ${p.name}</div>`;}}); engProjects.forEach(p=>{if(p.status==='warranty'&&p.warrantyDate){const d=new Date(p.warrantyDate); d.setMonth(d.getMonth()+10); if(t>=d.toISOString().split('T')[0]){h=true; l.innerHTML+=`<div class="alert-item" style="color:var(--purple)" onclick="openDetail('warranty','${p.id}')">📞 [保固] ${p.name} 維修關懷</div>`;}}}); document.getElementById('alert-dashboard').style.display=h?'block':'none'; }
+        function renderCalendar(){ const y=calDate.getFullYear(), m=calDate.getMonth(); document.getElementById('cal-month-year').innerText=`${y}年 ${m+1}月`; const c=document.getElementById('calendar-days'); c.innerHTML=''; for(let i=0;i<new Date(y,m,1).getDay();i++)c.innerHTML+='<div></div>'; for(let d=1;d<=new Date(y,m+1,0).getDate();d++){ const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; let hasDesign=false, hasEng=false, hasWar=false; designProjects.forEach(p=>{Object.values(p.stages||{}).forEach(s=>{if(s.start&&s.end&&ds>=s.start&&ds<=s.end)hasDesign=true;});}); engProjects.forEach(p=>{if(p.status==='warranty'){if(p.warrantyDate){let endWar=new Date(p.warrantyDate); endWar.setFullYear(endWar.getFullYear()+1); if(ds>=p.warrantyDate&&ds<=endWar.toISOString().split('T')[0])hasWar=true;}}else{Object.values(p.stages||{}).forEach(s=>{if(p.stages[s.id]?.enabled!==false&&s.start&&s.end&&ds>=s.start&&ds<=s.end)hasEng=true;});}}); let barsHtml='<div class="cal-bar-container">'; if(hasDesign)barsHtml+='<div class="cal-bar bar-design"></div>'; if(hasEng)barsHtml+='<div class="cal-bar bar-eng"></div>'; if(hasWar)barsHtml+='<div class="cal-bar bar-warranty"></div>'; barsHtml+='</div>'; const div=document.createElement('div'); div.className=`cal-date`; div.innerHTML=`<span>${d}</span>${barsHtml}`; div.onclick=()=>showEvents(ds,div); c.appendChild(div); } }
+        function showEvents(ds,el){ document.querySelectorAll('.cal-date').forEach(e=>e.classList.remove('active')); el.classList.add('active'); const b=document.getElementById('calendar-events'); b.innerHTML=`<div style="font-weight:bold;margin-bottom:10px">📅 ${ds}</div>`; let h=''; const add=(l,lbl,def,typ)=>l.forEach(p=>{Object.keys(p.stages||{}).forEach(sid=>{const s=p.stages[sid]; if(s.enabled!==false&&s.start&&s.end&&ds>=s.start&&ds<=s.end){let j=typ; if(typ==='engineering'&&p.status==='warranty')j='warranty'; let sName = typ==='design'?def[sid] : STAGES_ENG_DEF[sid]; h+=`<div class="event-item" onclick="openDetail('${j}','${p.id}')"><div class="dot" style="background:var(--${typ==='design'?'blue':'yellow'})"></div>進行中：${p.name} - ${sName}</div>`;}});}); add(designProjects,'設',STAGES_DESIGN_DEF,'design'); add(engProjects,'工',[],'engineering'); if(h==='')h='<div style="color:#666">今日無行程</div>'; b.innerHTML+=h; }
+        function openAddModal(t){addModeType=t; document.getElementById('modal-title').innerText=t==='design'?'新增設計':'新增工程'; document.getElementById('add-modal').style.display='flex'; document.getElementById('new-name').value='';}
+        function closeAddModal(){document.getElementById('add-modal').style.display='none';}
+        function changeMonth(n){calDate.setMonth(calDate.getMonth()+n); renderCalendar();}
+
+        // V24: Restore missing renderActionBar function
+        function renderActionBar(type, status) {
+            const b = document.getElementById('action-bar-container'); 
+            b.innerHTML = ''; 
+            if (type === 'design') {
+                b.innerHTML = `
+                    <button class="action-btn btn-track" onclick="updateDesignStatus('tracking')">追蹤中</button>
+                    <button class="action-btn btn-del" onclick="deleteCurrentProject()">刪除</button>
+                    <button class="action-btn btn-done" onclick="convertToEngineering()">完成</button>
+                `; 
+            } else if (type === 'engineering') {
+                const suspendBtnText = status === 'suspended' ? '恢復進行' : '工程暫緩';
+                b.innerHTML = `
+                    <button class="action-btn btn-del" onclick="deleteCurrentProject()">刪除</button>
+                    <button class="action-btn btn-suspend" onclick="toggleSuspend()">${suspendBtnText}</button>
+                    <button class="action-btn btn-done" onclick="moveToWarranty()">完工</button>
+                `;
+            } else if (type === 'warranty') {
+                b.innerHTML = `<button class="action-btn btn-del" onclick="deleteCurrentProject()">刪除保固紀錄</button>`; 
+            }
         }
     </script>
 </body>
