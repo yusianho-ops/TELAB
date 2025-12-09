@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>對錯空間 v25.4 (Fixes)</title>
+    <title>對錯空間 v25.5 (Hotfix)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#202124">
@@ -419,15 +419,21 @@
 
             order.forEach((sid, index) => {
                 if (!p.stages) p.stages = {};
-                let sName = (p.stages[sid] && p.stages[sid].name) ? p.stages[sid].name : defs[sid];
-                if(!sName) sName = "未知項目";
 
+                // FIXED V25.5: Initialize stage data object BEFORE accessing properties
+                if (!p.stages[sid]) {
+                     const defaultEnabled = type === 'design' ? true : (['es_sign','es1','es2','es3'].includes(sid));
+                     p.stages[sid] = { done: false, start: '', end: '', vendor: '', cost: '', enabled: defaultEnabled };
+                }
+
+                // Now it is safe to assign sData
                 const sData = p.stages[sid];
-                // Fix 1: Ensure 'enabled' is true for design projects if undefined (to prevent disappearing items)
-                if (sData.enabled === undefined) sData.enabled = (type === 'design' ? true : true); // Default to true
-                if (type === 'design') sData.enabled = true; // Design items always enabled
+                
+                // V25.4 Fix: Ensure 'enabled' is true for design projects
+                if (type === 'design') sData.enabled = true;
 
-                if (!p.stages[sid]) p.stages[sid] = { done: false, start: '', end: '', vendor: '', cost: '', enabled: true };
+                let sName = sData.name ? sData.name : defs[sid];
+                if(!sName) sName = "未知項目";
                 
                 if (!isEditMode && !sData.enabled) return;
 
@@ -448,7 +454,6 @@
                      header += `<label class="toggle-switch"><input type="checkbox" ${sData.enabled ? 'checked' : ''} onchange="toggleStageEnable('${sid}', this.checked)"><span class="slider"></span></label>`;
                 }
                 
-                // Fix 2: Remove onclick re-render call, use specific toggle function
                 header += `<div style="flex:1; display:flex; align-items:center" onclick="if(!isEditMode && ${sData.enabled}) toggleDoneOptimistic('${sid}')"><div class="custom-checkbox"></div><span style="font-weight:bold">${sName}</span></div></div>`;
                 
                 if (sData.enabled) {
@@ -472,34 +477,29 @@
              if(el) el.innerText = pct + '%';
         }
 
-        // Fix 2: Instant Toggle without re-render
         function toggleDoneOptimistic(sid) {
             const list = currentType === 'design' ? designProjects : engProjects;
             const p = list.find(x => x.id === currentId);
             
-            // 1. Update Local Data
             p.stages[sid].done = !p.stages[sid].done;
 
-            // 2. Update UI (Class Toggle)
             const itemDiv = document.getElementById(`stage-item-${sid}`);
             if(itemDiv) {
                 if(p.stages[sid].done) itemDiv.classList.add('checked');
                 else itemDiv.classList.remove('checked');
             }
 
-            // 3. Recalculate Progress
             let activeCount = 0, doneCount = 0;
             const order = p.stageOrder || (currentType === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER);
             order.forEach(id => {
                  const s = p.stages[id];
-                 if(s && (s.enabled !== false)) { // Careful with logic here, consistent with render
+                 if(s && (s.enabled !== false)) { 
                      activeCount++;
                      if(s.done) doneCount++;
                  }
             });
             updateProgressText(activeCount, doneCount);
 
-            // 4. Update Cloud
             const collection = currentType === 'design' ? "design_projects" : "eng_projects";
             const updateKey = `stages.${sid}.done`;
             updateCloud(collection, currentId, { [updateKey]: p.stages[sid].done });
@@ -599,7 +599,6 @@
         async function moveToWarranty(){ if (!confirm('確認完工?')) return; await updateCloud("eng_projects", currentId, { status: 'warranty', warrantyDate: new Date().toISOString().split('T')[0] }); navigateTo('warranty-list-page'); }
         async function updateDesignStatus(s){ await updateCloud("design_projects", currentId, { status: s }); goBack(); }
         
-        // Fix 3: Toggle Tracking logic
         function toggleDesignTracking() {
              const p = designProjects.find(x => x.id === currentId);
              const newStatus = p.status === 'tracking' ? 'active' : 'tracking';
@@ -674,12 +673,11 @@
         }
         function renderList(type) { let list=[], cid=''; if(type==='design'){list=designProjects;cid='design-list-container';}else if(type==='engineering'){list=engProjects.filter(p=>p.status==='active'||p.status==='suspended');cid='engineering-list-container';}else{list=engProjects.filter(p=>p.status==='warranty');cid='warranty-list-container';} const c=document.getElementById(cid); c.innerHTML=''; list.sort((a,b)=>(a.status==='suspended'?1:-1)); if(list.length===0) c.innerHTML='<div style="text-align:center;color:#666;margin-top:30px">暫無案件</div>'; list.forEach(p=>{ const defs = type === 'design' ? STAGES_DESIGN_DEF : STAGES_ENG_DEF; const order = p.stageOrder || (type === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER); let currentProgress = '尚未開始', total = 0, done = 0; for(let i=0; i<order.length; i++) { const sid = order[i]; const s = (p.stages && p.stages[sid]) || {}; const isEnabled = type === 'design' ? true : (s.enabled !== false); if(isEnabled) { total++; if(s.done) { done++; let sName = defs[sid] || s.name; currentProgress = sName; } } } const pct=total===0?0:Math.round((done/total)*100); let tags=''; if(p.status==='tracking')tags+='<span class="tag tag-track">追蹤中</span>'; if(p.status==='suspended')tags+='<span class="tag tag-suspend">暫緩</span>'; if(p.status==='warranty')tags+='<span class="tag tag-warranty">保固中</span>'; let oType=type==='warranty'?'engineering':type; c.innerHTML+=`<div class="project-card" onclick="openDetail('${type==='warranty'?'warranty':oType}','${p.id}')"><div style="position:relative;z-index:2;"><div style="font-weight:bold;color:var(--text-primary)">${p.name} ${tags}</div><div style="font-size:0.9rem;color:var(--text-secondary)">${p.client||''}</div><div class="card-progress-text">目前進度：${currentProgress}</div></div><div class="progress-bg"><div class="progress-fill" style="width:${pct}%"></div></div></div>`; }); }
         
-        // Fix 3: Use toggle function for tracking
         function renderActionBar(type, status) { 
             const b = document.getElementById('action-bar-container'); b.innerHTML = ''; 
             if (type === 'design') {
                 const trackBtnLabel = status === 'tracking' ? '取消追蹤' : '追蹤中';
-                const trackBtnClass = status === 'tracking' ? 'btn-track' : 'btn-track'; // Can add different style if needed
+                const trackBtnClass = status === 'tracking' ? 'btn-track' : 'btn-track'; 
                 b.innerHTML = `<button class="action-btn ${trackBtnClass}" onclick="toggleDesignTracking()">${trackBtnLabel}</button><button class="action-btn btn-del" onclick="deleteCurrentProject()">刪除</button><button class="action-btn btn-done" onclick="convertToEngineering()">完成</button>`; 
             } else if (type === 'engineering') {
                 b.innerHTML = `<button class="action-btn btn-del" onclick="deleteCurrentProject()">刪除</button><button class="action-btn btn-suspend" onclick="toggleSuspend()">${status==='suspended'?'恢復':'暫緩'}</button><button class="action-btn btn-done" onclick="moveToWarranty()">完工</button>`; 
