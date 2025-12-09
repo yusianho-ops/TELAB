@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>對錯空間 v25.5 (Hotfix)</title>
+    <title>對錯空間 v25.6 (Secure Login)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#202124">
@@ -25,7 +25,15 @@
         .header-back { position: absolute; left: 15px; background: none; border: none; font-size: 1rem; color: var(--blue); cursor: pointer; display: none; }
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
         .page { display: none; } .page.active { display: block; }
+        
+        /* Overlays */
         #loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center; color:white; font-size:1.2rem; flex-direction: column; gap:10px; text-align: center; padding: 20px;}
+        
+        /* Login Overlay */
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .login-box { background: var(--surface-color); padding: 30px; border-radius: 12px; width: 100%; max-width: 320px; text-align: center; border: 1px solid var(--divider); }
+        .login-input { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.2); border: 1px solid var(--divider); color: var(--text-primary); border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        .login-btn { width: 100%; padding: 12px; background: var(--blue); color: #202124; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; }
         
         /* Calendar */
         .calendar-section { background: var(--surface-color); border-radius: 12px; padding: 15px; margin-bottom: 20px; }
@@ -114,14 +122,26 @@
 </head>
 <body>
 
-    <div id="loading-overlay">
-        <div id="loading-msg">連線資料庫中...</div>
-        <div id="upload-status" style="font-size:0.9rem; color:#aaa; margin-top:5px;"></div>
+    <div id="loading-overlay" style="display:none;">
+        <div id="loading-msg">資料載入中...</div>
+    </div>
+
+    <!-- V25.6 Login Overlay -->
+    <div id="login-overlay">
+        <div class="login-box">
+            <h2 style="margin-top:0; color:var(--blue);">對錯空間實驗室</h2>
+            <p style="color:var(--text-secondary); margin-bottom:20px;">請登入以存取資料</p>
+            <input type="email" id="login-email" class="login-input" placeholder="電子信箱">
+            <input type="password" id="login-password" class="login-input" placeholder="密碼">
+            <button class="login-btn" onclick="performLogin()">登入</button>
+            <div id="login-error" style="color:var(--red); font-size:0.9rem; margin-top:10px;"></div>
+        </div>
     </div>
 
     <header>
         <button id="back-btn" class="header-back" onclick="goBack()">‹ 返回</button>
         <h1 id="page-title">對錯空間實驗室</h1>
+        <button onclick="logout()" style="position:absolute; right:15px; background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.9rem;">登出</button>
     </header>
 
     <div id="home-page" class="page active container">
@@ -259,20 +279,51 @@
         let designProjects = [], engProjects = [];
         let currentType = '', currentId = '', calDate = new Date(), addModeType = '', tempPhotoData = '', currentPaymentTab = 'design';
         let draggedItem = null, touchDragSrcIndex = null, tempPhotoFile = null;
-        
         let isEditMode = false;
 
+        // V25.6: XSS Protection Helper
+        function safe(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // V25.6: Auth State Listener
         window.onload = () => {
             document.getElementById('loading-overlay').style.display = 'flex';
-            document.getElementById('loading-msg').innerText = '正在匿名登入...';
-            
-            auth.signInAnonymously().then(() => {
-                document.getElementById('loading-msg').innerText = '載入資料中...';
-                initFirestoreListeners();
-            }).catch(e => alert("Auth Error: " + e.message));
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    document.getElementById('login-overlay').style.display = 'none';
+                    document.getElementById('loading-msg').innerText = '載入資料中...';
+                    initFirestoreListeners();
+                } else {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    document.getElementById('login-overlay').style.display = 'flex';
+                }
+            });
         };
 
+        function performLogin() {
+            const e = document.getElementById('login-email').value;
+            const p = document.getElementById('login-password').value;
+            if(!e || !p) return alert('請輸入帳號密碼');
+            auth.signInWithEmailAndPassword(e, p).catch(err => {
+                document.getElementById('login-error').innerText = "登入失敗: " + err.message;
+            });
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
+                location.reload();
+            });
+        }
+
         function initFirestoreListeners() {
+            // Unsubscribe existing listeners if any could be implemented here
             db.collection("design_projects").onSnapshot(snap => {
                 designProjects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 refreshUI();
@@ -304,7 +355,7 @@
 
         function formatDate(dStr) {
             if(!dStr) return '';
-            return dStr.replace(/-/g, '/');
+            return safe(dStr.replace(/-/g, '/'));
         }
 
         async function updateCloud(collection, id, data) { await db.collection(collection).doc(id).update(data); }
@@ -380,6 +431,7 @@
                 const p = list.find(x => x.id === id); 
                 if(!p) { alert('查無此案件資料'); return; }
 
+                // Safe value setting
                 ['name', 'client', 'phone', 'address', 'parking', 'code'].forEach(key => { document.getElementById('d-' + key).value = p[key] || ''; }); 
                 
                 const dPriceRow = document.getElementById('design-price-row'); const ePriceRow = document.getElementById('engineering-price-row'); const wDateRow = document.getElementById('warranty-date-row'); const payBtn = document.getElementById('add-payment-btn'); 
@@ -420,16 +472,12 @@
             order.forEach((sid, index) => {
                 if (!p.stages) p.stages = {};
 
-                // FIXED V25.5: Initialize stage data object BEFORE accessing properties
                 if (!p.stages[sid]) {
                      const defaultEnabled = type === 'design' ? true : (['es_sign','es1','es2','es3'].includes(sid));
                      p.stages[sid] = { done: false, start: '', end: '', vendor: '', cost: '', enabled: defaultEnabled };
                 }
 
-                // Now it is safe to assign sData
                 const sData = p.stages[sid];
-                
-                // V25.4 Fix: Ensure 'enabled' is true for design projects
                 if (type === 'design') sData.enabled = true;
 
                 let sName = sData.name ? sData.name : defs[sid];
@@ -441,7 +489,7 @@
 
                 const item = document.createElement('div');
                 item.className = `checklist-item ${sData.done ? 'checked' : ''} ${!sData.enabled ? 'disabled' : ''}`;
-                item.id = `stage-item-${sid}`; // For efficient DOM update
+                item.id = `stage-item-${sid}`; 
                 
                 if (isEditMode) {
                     item.draggable = true; item.dataset.index = index; 
@@ -454,12 +502,13 @@
                      header += `<label class="toggle-switch"><input type="checkbox" ${sData.enabled ? 'checked' : ''} onchange="toggleStageEnable('${sid}', this.checked)"><span class="slider"></span></label>`;
                 }
                 
-                header += `<div style="flex:1; display:flex; align-items:center" onclick="if(!isEditMode && ${sData.enabled}) toggleDoneOptimistic('${sid}')"><div class="custom-checkbox"></div><span style="font-weight:bold">${sName}</span></div></div>`;
+                // Safe: escape name
+                header += `<div style="flex:1; display:flex; align-items:center" onclick="if(!isEditMode && ${sData.enabled}) toggleDoneOptimistic('${sid}')"><div class="custom-checkbox"></div><span style="font-weight:bold">${safe(sName)}</span></div></div>`;
                 
                 if (sData.enabled) {
                     let details = `<div class="stage-details">`;
                     if (type === 'engineering' || type === 'warranty') {
-                        details += `<div style="display:flex; gap:10px; margin-bottom:8px;"><input type="text" class="detail-input" placeholder="廠商" value="${sData.vendor || ''}" style="flex:1; font-size:0.9rem; padding:8px;" onchange="updateStageField('${sid}','vendor',this.value)"><input type="text" class="detail-input" placeholder="發包成本" value="${formatNumber(sData.cost || '')}" style="flex:1; font-size:0.9rem; padding:8px; color:#ffccbc;" onkeyup="formatCurrency(this)" onchange="updateStageField('${sid}','cost',this.value)"></div>`;
+                        details += `<div style="display:flex; gap:10px; margin-bottom:8px;"><input type="text" class="detail-input" placeholder="廠商" value="${safe(sData.vendor || '')}" style="flex:1; font-size:0.9rem; padding:8px;" onchange="updateStageField('${sid}','vendor',this.value)"><input type="text" class="detail-input" placeholder="發包成本" value="${formatNumber(sData.cost || '')}" style="flex:1; font-size:0.9rem; padding:8px; color:#ffccbc;" onkeyup="formatCurrency(this)" onchange="updateStageField('${sid}','cost',this.value)"></div>`;
                     }
                     details += `<div class="date-row"><div class="date-group"><div class="date-label">開始</div><input type="date" class="mini-date" value="${sData.start}" onchange="updateStageField('${sid}','start',this.value)"></div><div class="date-group"><div class="date-label">完成</div><input type="date" class="mini-date" value="${sData.end}" onchange="updateStageField('${sid}','end',this.value)"></div></div></div>`;
                     item.innerHTML = header + details;
@@ -539,18 +588,21 @@
                     let linkedStageName = ''; 
                     if (currentPaymentTab === 'engineering' && pay.linkedStage) { 
                         let sName = STAGES_ENG_DEF[pay.linkedStage] || (p.stages[pay.linkedStage]?.name) || "未知";
-                        linkedStageName = `<div style="font-size:0.8rem; color:var(--text-secondary)">連結：${sName}</div>`; 
+                        linkedStageName = `<div style="font-size:0.8rem; color:var(--text-secondary)">連結：${safe(sName)}</div>`; 
                     } 
-                    paymentsHtml += `<div class="payment-row"><div class="payment-header"><div class="payment-check-area" onclick="togglePayment('${p.id}', ${idx}, '${currentPaymentTab}')"><div class="custom-checkbox ${pay.done ? 'checked' : ''}" style="border-color:var(--teal)"></div><div style="display:flex; flex-direction:column"><span>${pay.name}</span>${linkedStageName}</div></div><div class="payment-info-area"><div style="color:var(--yellow); font-weight:bold;">$${amountDisplay}</div><div style="font-size:0.85rem;color:#888;">${formatDate(pay.date)}</div></div></div></div>`; 
+                    paymentsHtml += `<div class="payment-row"><div class="payment-header"><div class="payment-check-area" onclick="togglePayment('${p.id}', ${idx}, '${currentPaymentTab}')"><div class="custom-checkbox ${pay.done ? 'checked' : ''}" style="border-color:var(--teal)"></div><div style="display:flex; flex-direction:column"><span>${safe(pay.name)}</span>${linkedStageName}</div></div><div class="payment-info-area"><div style="color:var(--yellow); font-weight:bold;">$${amountDisplay}</div><div style="font-size:0.85rem;color:#888;">${formatDate(pay.date)}</div></div></div></div>`; 
                 }); 
                 const div = document.createElement('div'); div.className = 'payment-card'; 
-                div.innerHTML = `<div class="payment-title">${p.name} <span style="font-size:0.8rem; font-weight:normal; color:#888;">(${p.client||''})</span></div><div class="payment-amount">總額：$${formatNumber(totalVal)}</div>${profitHtml}${paymentsHtml}`; 
+                // XSS Protection Applied
+                div.innerHTML = `<div class="payment-title">${safe(p.name)} <span style="font-size:0.8rem; font-weight:normal; color:#888;">(${safe(p.client||'')})</span></div><div class="payment-amount">總額：$${formatNumber(totalVal)}</div>${profitHtml}${paymentsHtml}`; 
                 container.appendChild(div); 
             }); 
         }
 
         async function addLog(){ const d=document.getElementById('new-log-date').value; const t=document.getElementById('new-log-text').value; if(!d)return alert('請選擇日期'); if(!t&&!tempPhotoFile)return alert('請輸入內容或選擇照片'); document.getElementById('loading-overlay').style.display = 'flex'; let photoUrl = ''; if(tempPhotoFile) { try { const storageRef = storage.ref(); const fileRef = storageRef.child(`project_logs/${Date.now()}_${tempPhotoFile.name}`); await fileRef.put(tempPhotoFile); photoUrl = await fileRef.getDownloadURL(); } catch(e) { console.error(e); alert("Upload failed"); document.getElementById('loading-overlay').style.display = 'none'; return; } } const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const newLog = { id: Date.now(), date: d, content: t, photo: photoUrl }; const updatedLogs = [...(p.logs || []), newLog]; await updateCloud(collection, currentId, { logs: updatedLogs }); p.logs = updatedLogs; renderLogs(p); document.getElementById('loading-overlay').style.display = 'none'; clearTempData(); document.getElementById('new-log-date').value = new Date().toISOString().split('T')[0]; }
-        function renderLogs(p){const c=document.getElementById('log-list-container'); c.innerHTML=''; (p.logs||[]).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(l=>{c.innerHTML+=`<div class="log-item"><button class="log-delete" onclick="deleteLog(${l.id})">×</button><div class="log-date">${formatDate(l.date)}</div><div class="log-content">${l.content}</div>${l.photo?`<img src="${l.photo}" class="log-image">`:''}</div>`;});}
+        
+        // XSS Protected Logs
+        function renderLogs(p){const c=document.getElementById('log-list-container'); c.innerHTML=''; (p.logs||[]).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(l=>{c.innerHTML+=`<div class="log-item"><button class="log-delete" onclick="deleteLog(${l.id})">×</button><div class="log-date">${formatDate(l.date)}</div><div class="log-content">${safe(l.content)}</div>${l.photo?`<img src="${l.photo}" class="log-image">`:''}</div>`;});}
         
         async function deleteLog(lid){ if(!confirm('刪除?'))return; const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const updatedLogs = p.logs.filter(k=>k.id!==lid); await updateCloud(collection, currentId, { logs: updatedLogs }); p.logs = updatedLogs; renderLogs(p); }
         async function updateStageField(sid, f, v) { const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const val = (f === 'cost') ? parseCurrency(v) : v; const updateKey = `stages.${sid}.${f}`; await updateCloud(collection, currentId, { [updateKey]: val }); }
@@ -626,7 +678,8 @@
             
             paymentList.forEach((pay, idx) => {
                 let amountInputHtml = '';
-                let nameInputHtml = `<input type="text" class="detail-input" value="${pay.name}" style="padding:4px; font-size:0.95rem; border:1px solid transparent; background:transparent; width:140px;" onfocus="this.style.border='1px solid var(--blue)'" onblur="this.style.border='1px solid transparent'; updatePaymentName('${p.id}', ${idx}, this.value, '${type === 'design'?'design':'engineering'}')">`;
+                // XSS Protection for Name
+                let nameInputHtml = `<input type="text" class="detail-input" value="${safe(pay.name)}" style="padding:4px; font-size:0.95rem; border:1px solid transparent; background:transparent; width:140px;" onfocus="this.style.border='1px solid var(--blue)'" onblur="this.style.border='1px solid transparent'; updatePaymentName('${p.id}', ${idx}, this.value, '${type === 'design'?'design':'engineering'}')">`;
 
                 if (type === 'design') { 
                     const disp = formatNumber(Math.round(totalVal * pay.ratio)); 
@@ -644,7 +697,7 @@
                         
                         if(p.stages[sid] && p.stages[sid].enabled !== false || sid === 'es_sign') {
                              const sel = pay.linkedStage === sid ? 'selected' : ''; 
-                             options += `<option value="${sid}" ${sel}>${sName}</option>`; 
+                             options += `<option value="${sid}" ${sel}>${safe(sName)}</option>`; // Safe
                         }
                     });
                     stageSelectorHtml = `<select class="stage-selector" onchange="updatePaymentLink('${p.id}', ${idx}, this.value, 'engineering')">${options}</select>`;
@@ -671,7 +724,7 @@
                 </div>`;
             });
         }
-        function renderList(type) { let list=[], cid=''; if(type==='design'){list=designProjects;cid='design-list-container';}else if(type==='engineering'){list=engProjects.filter(p=>p.status==='active'||p.status==='suspended');cid='engineering-list-container';}else{list=engProjects.filter(p=>p.status==='warranty');cid='warranty-list-container';} const c=document.getElementById(cid); c.innerHTML=''; list.sort((a,b)=>(a.status==='suspended'?1:-1)); if(list.length===0) c.innerHTML='<div style="text-align:center;color:#666;margin-top:30px">暫無案件</div>'; list.forEach(p=>{ const defs = type === 'design' ? STAGES_DESIGN_DEF : STAGES_ENG_DEF; const order = p.stageOrder || (type === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER); let currentProgress = '尚未開始', total = 0, done = 0; for(let i=0; i<order.length; i++) { const sid = order[i]; const s = (p.stages && p.stages[sid]) || {}; const isEnabled = type === 'design' ? true : (s.enabled !== false); if(isEnabled) { total++; if(s.done) { done++; let sName = defs[sid] || s.name; currentProgress = sName; } } } const pct=total===0?0:Math.round((done/total)*100); let tags=''; if(p.status==='tracking')tags+='<span class="tag tag-track">追蹤中</span>'; if(p.status==='suspended')tags+='<span class="tag tag-suspend">暫緩</span>'; if(p.status==='warranty')tags+='<span class="tag tag-warranty">保固中</span>'; let oType=type==='warranty'?'engineering':type; c.innerHTML+=`<div class="project-card" onclick="openDetail('${type==='warranty'?'warranty':oType}','${p.id}')"><div style="position:relative;z-index:2;"><div style="font-weight:bold;color:var(--text-primary)">${p.name} ${tags}</div><div style="font-size:0.9rem;color:var(--text-secondary)">${p.client||''}</div><div class="card-progress-text">目前進度：${currentProgress}</div></div><div class="progress-bg"><div class="progress-fill" style="width:${pct}%"></div></div></div>`; }); }
+        function renderList(type) { let list=[], cid=''; if(type==='design'){list=designProjects;cid='design-list-container';}else if(type==='engineering'){list=engProjects.filter(p=>p.status==='active'||p.status==='suspended');cid='engineering-list-container';}else{list=engProjects.filter(p=>p.status==='warranty');cid='warranty-list-container';} const c=document.getElementById(cid); c.innerHTML=''; list.sort((a,b)=>(a.status==='suspended'?1:-1)); if(list.length===0) c.innerHTML='<div style="text-align:center;color:#666;margin-top:30px">暫無案件</div>'; list.forEach(p=>{ const defs = type === 'design' ? STAGES_DESIGN_DEF : STAGES_ENG_DEF; const order = p.stageOrder || (type === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER); let currentProgress = '尚未開始', total = 0, done = 0; for(let i=0; i<order.length; i++) { const sid = order[i]; const s = (p.stages && p.stages[sid]) || {}; const isEnabled = type === 'design' ? true : (s.enabled !== false); if(isEnabled) { total++; if(s.done) { done++; let sName = defs[sid] || s.name; currentProgress = sName; } } } const pct=total===0?0:Math.round((done/total)*100); let tags=''; if(p.status==='tracking')tags+='<span class="tag tag-track">追蹤中</span>'; if(p.status==='suspended')tags+='<span class="tag tag-suspend">暫緩</span>'; if(p.status==='warranty')tags+='<span class="tag tag-warranty">保固中</span>'; let oType=type==='warranty'?'engineering':type; c.innerHTML+=`<div class="project-card" onclick="openDetail('${type==='warranty'?'warranty':oType}','${p.id}')"><div style="position:relative;z-index:2;"><div style="font-weight:bold;color:var(--text-primary)">${safe(p.name)} ${tags}</div><div style="font-size:0.9rem;color:var(--text-secondary)">${safe(p.client||'')}</div><div class="card-progress-text">目前進度：${safe(currentProgress)}</div></div><div class="progress-bg"><div class="progress-fill" style="width:${pct}%"></div></div></div>`; }); }
         
         function renderActionBar(type, status) { 
             const b = document.getElementById('action-bar-container'); b.innerHTML = ''; 
@@ -697,7 +750,8 @@
                         if(s.enabled!==false&&s.end&&s.end<t&&!s.done){
                             h=true; 
                             let sName = defs[sid] || s.name; 
-                            l.innerHTML+=`<div class="alert-item" onclick="openDetail('${lbl==='設計'?'design':'engineering'}','${p.id}')">⚠️ [${lbl}] ${p.name} - ${sName} 延誤</div>`;
+                            // XSS Safe
+                            l.innerHTML+=`<div class="alert-item" onclick="openDetail('${lbl==='設計'?'design':'engineering'}','${p.id}')">⚠️ [${lbl}] ${safe(p.name)} - ${safe(sName)} 延誤</div>`;
                         }
                     })
                 })
@@ -711,13 +765,13 @@
                     if(s.enabled!==false&&s.end&&s.end<t&&!s.done){
                         h=true; 
                         let sName = STAGES_ENG_DEF[sid] || s.name; 
-                        l.innerHTML+=`<div class="alert-item" onclick="openDetail('engineering','${p.id}')">⚠️ [工程] ${p.name}-${sName} 延誤</div>`;
+                        l.innerHTML+=`<div class="alert-item" onclick="openDetail('engineering','${p.id}')">⚠️ [工程] ${safe(p.name)}-${safe(sName)} 延誤</div>`;
                     }
                 })
             }); 
             
-            engProjects.forEach(p=>{if(p.status==='suspended'){h=true;l.innerHTML+=`<div class="alert-item" style="color:var(--orange)" onclick="openDetail('engineering','${p.id}')">⛔ [暫緩] ${p.name}</div>`;}}); 
-            engProjects.forEach(p=>{if(p.status==='warranty'&&p.warrantyDate){const d=new Date(p.warrantyDate); d.setMonth(d.getMonth()+10); if(t>=d.toISOString().split('T')[0]){h=true; l.innerHTML+=`<div class="alert-item" style="color:var(--purple)" onclick="openDetail('warranty','${p.id}')">📞 [保固] ${p.name} 維修關懷</div>`;}}}); 
+            engProjects.forEach(p=>{if(p.status==='suspended'){h=true;l.innerHTML+=`<div class="alert-item" style="color:var(--orange)" onclick="openDetail('engineering','${p.id}')">⛔ [暫緩] ${safe(p.name)}</div>`;}}); 
+            engProjects.forEach(p=>{if(p.status==='warranty'&&p.warrantyDate){const d=new Date(p.warrantyDate); d.setMonth(d.getMonth()+10); if(t>=d.toISOString().split('T')[0]){h=true; l.innerHTML+=`<div class="alert-item" style="color:var(--purple)" onclick="openDetail('warranty','${p.id}')">📞 [保固] ${safe(p.name)} 維修關懷</div>`;}}}); 
             document.getElementById('alert-dashboard').style.display=h?'block':'none'; 
         }
 
@@ -771,7 +825,7 @@
                         let j=typ; 
                         if(typ==='engineering'&&p.status==='warranty')j='warranty'; 
                         let sName = def[sid] || s.name; 
-                        h+=`<div class="event-item" onclick="openDetail('${j}','${p.id}')"><div class="dot" style="background:var(--${typ==='design'?'blue':'yellow'})"></div>進行中：${p.name} - ${sName}</div>`;
+                        h+=`<div class="event-item" onclick="openDetail('${j}','${p.id}')"><div class="dot" style="background:var(--${typ==='design'?'blue':'yellow'})"></div>進行中：${safe(p.name)} - ${safe(sName)}</div>`;
                     }
                 });
             }); 
