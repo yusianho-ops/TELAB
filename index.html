@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>對錯空間 v25.7 (Login Fix)</title>
+    <title>對錯空間 v25.8 (Tax & Cost Fix)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#202124">
@@ -28,8 +28,6 @@
         
         /* Overlays */
         #loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center; color:white; font-size:1.2rem; flex-direction: column; gap:10px; text-align: center; padding: 20px;}
-        
-        /* Login Overlay - Fixed: display none by default */
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
         .login-box { background: var(--surface-color); padding: 30px; border-radius: 12px; width: 100%; max-width: 320px; text-align: center; border: 1px solid var(--divider); }
         .login-input { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.2); border: 1px solid var(--divider); color: var(--text-primary); border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
@@ -118,6 +116,8 @@
         .action-bar { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; } .action-btn { flex: 1; padding: 15px; border: none; border-radius: 12px; font-size: 0.95rem; cursor: pointer; color: #202124; font-weight: bold; min-width: 100px;} .btn-track { background: var(--yellow); } .btn-del { background: rgba(242,139,130,0.2); color: var(--red); } .btn-done { background: var(--green); } .btn-suspend { background: var(--orange); } .btn-warranty { background: var(--purple); color: white; }
         
         .btn-mini-del { background: none; border: none; color: var(--red); font-size: 1.1rem; cursor: pointer; padding: 0 0 0 10px; }
+        /* Tax Toggle */
+        .tax-toggle-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid var(--divider); padding-top: 8px;}
     </style>
 </head>
 <body>
@@ -126,7 +126,6 @@
         <div id="loading-msg">資料載入中...</div>
     </div>
 
-    <!-- V25.7 Login Overlay - Fixed CSS -->
     <div id="login-overlay">
         <div class="login-box">
             <h2 style="margin-top:0; color:var(--blue);">對錯空間實驗室</h2>
@@ -210,7 +209,18 @@
                         <input type="text" class="detail-input" id="d-eng-var" placeholder="金額" onfocus="toNum(this)" onblur="toCur(this); updateField('engVarPrice', this.value)" style="color:var(--orange); font-weight:bold;">
                     </div>
                 </div>
-                <div style="text-align:right; font-size:1rem; color:var(--text-primary); border-top:1px solid var(--divider); padding-top:5px;">
+                <!-- Fix 2: Tax Toggle -->
+                <div class="tax-toggle-row">
+                    <div style="display:flex; align-items:center;">
+                        <label class="toggle-switch" style="margin-right:10px;">
+                            <input type="checkbox" id="d-eng-tax-toggle" onchange="toggleTax(this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                        <span style="font-size:0.9rem;">稅金 (5%)</span>
+                    </div>
+                    <div id="d-eng-tax-val" style="color:#aaa; font-size:0.9rem;">$0</div>
+                </div>
+                <div style="text-align:right; font-size:1rem; color:var(--text-primary); border-top:1px solid var(--divider); padding-top:5px; margin-top:5px;">
                     總計: <span id="d-eng-total" style="color:var(--yellow); font-weight:bold;">$0</span>
                 </div>
             </div>
@@ -287,17 +297,10 @@
         }
 
         window.onload = () => {
-            // FIXED: CSS handles default state, this forces sync
             document.getElementById('loading-overlay').style.display = 'flex';
-            
             auth.onAuthStateChanged(user => {
                 if (user) {
-                    // CRITICAL FIX: If anonymous, sign out to force Email Login
-                    if (user.isAnonymous) {
-                        auth.signOut();
-                        return;
-                    }
-                    
+                    if (user.isAnonymous) { auth.signOut(); return; }
                     document.getElementById('login-overlay').style.display = 'none';
                     document.getElementById('loading-msg').innerText = '載入資料中...';
                     initFirestoreListeners();
@@ -312,7 +315,6 @@
             const e = document.getElementById('login-email').value;
             const p = document.getElementById('login-password').value;
             if(!e || !p) return alert('請輸入帳號密碼');
-            // Show loading during login
             document.getElementById('loading-overlay').style.display = 'flex';
             auth.signInWithEmailAndPassword(e, p).catch(err => {
                 document.getElementById('loading-overlay').style.display = 'none';
@@ -327,12 +329,11 @@
         }
 
         function initFirestoreListeners() {
-            // Added Error Handling to prevent hanging
             db.collection("design_projects").onSnapshot(snap => {
                 designProjects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 refreshUI();
             }, error => {
-                alert("讀取設計資料失敗 (權限不足或網路問題): " + error.message);
+                alert("讀取設計資料失敗: " + error.message);
                 document.getElementById('loading-overlay').style.display = 'none';
             });
 
@@ -383,12 +384,29 @@
             updateCloud(collection, currentId, { [key]: val });
         }
 
+        // Fix 2: Tax Calculation Logic
         function calculateTotalEng(p) {
             const base = parseInt(p.engBasePrice) || 0;
             const variable = parseInt(p.engVarPrice) || 0;
-            const total = base + variable;
-            document.getElementById('d-eng-total').innerText = '$' + formatNumber(total);
+            const isTax = p.taxEnabled === true;
+            
+            const subtotal = base + variable;
+            const tax = isTax ? Math.round(subtotal * 0.05) : 0;
+            const total = subtotal + tax;
+
+            if(document.getElementById('d-eng-total')) {
+                document.getElementById('d-eng-tax-val').innerText = isTax ? '$' + formatNumber(tax) : '$0';
+                document.getElementById('d-eng-total').innerText = '$' + formatNumber(total);
+            }
             return total;
+        }
+
+        // Fix 2: Toggle Tax
+        function toggleTax(checked) {
+            const p = engProjects.find(x => x.id === currentId);
+            p.taxEnabled = checked;
+            calculateTotalEng(p);
+            updateCloud("eng_projects", currentId, { taxEnabled: checked });
         }
 
         function toggleEditMode() {
@@ -455,6 +473,11 @@
                     ePriceRow.style.display = 'block'; 
                     document.getElementById('d-eng-base').value = p.engBasePrice ? formatNumber(p.engBasePrice) : '';
                     document.getElementById('d-eng-var').value = p.engVarPrice ? formatNumber(p.engVarPrice) : '';
+                    
+                    // Fix 2: Tax Switch
+                    const taxSwitch = document.getElementById('d-eng-tax-toggle');
+                    if(taxSwitch) taxSwitch.checked = p.taxEnabled === true;
+                    
                     calculateTotalEng(p);
                     
                     if(type === 'engineering') payBtn.style.display = 'block'; 
@@ -473,29 +496,44 @@
             }
         }
 
+        // Fix 4: Consolidated Progress Logic
+        function calculateProgress(p, type) {
+            let activeCount = 0, doneCount = 0;
+            const order = p.stageOrder || (type === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER);
+            order.forEach(sid => {
+                const s = p.stages && p.stages[sid];
+                // Strict check: if it exists AND is enabled (not false)
+                if (s && s.enabled !== false) {
+                    activeCount++;
+                    if (s.done) doneCount++;
+                }
+            });
+            return { activeCount, doneCount };
+        }
+
         function renderStages(p, type) {
             const container = document.getElementById('checklist-container'); container.innerHTML = '';
             let order = p.stageOrder || (type === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER);
             let defs = type === 'design' ? STAGES_DESIGN_DEF : STAGES_ENG_DEF;
-            let activeCount = 0, doneCount = 0;
 
             order.forEach((sid, index) => {
                 if (!p.stages) p.stages = {};
 
+                // Initialize if missing
                 if (!p.stages[sid]) {
+                     // Fix 3: Remove forced design enable here to allow toggling, 
+                     // but default to true if it's a new record
                      const defaultEnabled = type === 'design' ? true : (['es_sign','es1','es2','es3'].includes(sid));
                      p.stages[sid] = { done: false, start: '', end: '', vendor: '', cost: '', enabled: defaultEnabled };
                 }
 
                 const sData = p.stages[sid];
-                if (type === 'design') sData.enabled = true;
+                // Fix 3: Removed strict design override line
 
                 let sName = sData.name ? sData.name : defs[sid];
                 if(!sName) sName = "未知項目";
                 
                 if (!isEditMode && !sData.enabled) return;
-
-                if (sData.enabled) { activeCount++; if (sData.done) doneCount++; }
 
                 const item = document.createElement('div');
                 item.className = `checklist-item ${sData.done ? 'checked' : ''} ${!sData.enabled ? 'disabled' : ''}`;
@@ -526,7 +564,10 @@
                 }
                 container.appendChild(item);
             });
-            updateProgressText(activeCount, doneCount);
+            
+            // Fix 4: Use new calculation logic
+            const prog = calculateProgress(p, type);
+            updateProgressText(prog.activeCount, prog.doneCount);
         }
 
         function updateProgressText(total, done) {
@@ -547,16 +588,9 @@
                 else itemDiv.classList.remove('checked');
             }
 
-            let activeCount = 0, doneCount = 0;
-            const order = p.stageOrder || (currentType === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER);
-            order.forEach(id => {
-                 const s = p.stages[id];
-                 if(s && (s.enabled !== false)) { 
-                     activeCount++;
-                     if(s.done) doneCount++;
-                 }
-            });
-            updateProgressText(activeCount, doneCount);
+            // Fix 4: Use new calculation logic on toggle too
+            const prog = calculateProgress(p, currentType);
+            updateProgressText(prog.activeCount, prog.doneCount);
 
             const collection = currentType === 'design' ? "design_projects" : "eng_projects";
             const updateKey = `stages.${sid}.done`;
@@ -581,14 +615,17 @@
                 } else {
                     const base = parseInt(p.engBasePrice) || 0;
                     const vary = parseInt(p.engVarPrice) || 0;
-                    totalVal = base + vary;
+                    // Fix 2: Tax in Payment Page
+                    const tax = (p.taxEnabled === true) ? Math.round((base + vary) * 0.05) : 0;
+                    totalVal = base + vary + tax;
                 }
 
                 let profitHtml = ''; 
                 if (currentPaymentTab === 'engineering') { 
                     let totalCost = 0; Object.values(p.stages || {}).forEach(s => { if (s.enabled && s.cost) totalCost += parseInt(s.cost || 0); }); 
                     const profit = totalVal - totalCost; const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative'; 
-                    profitHtml = `<div class="profit-box"><div class="profit-title">財務損益表 (內部)</div><div class="profit-row"><span>合約+追加</span> <span>$${formatNumber(totalVal)}</span></div><div class="profit-row"><span>發包總支</span> <span>$${formatNumber(totalCost)}</span></div><div class="profit-final"><span>預估毛利</span> <span class="${profitClass}">$${formatNumber(profit)}</span></div></div>`; 
+                    // Fix 2: Updated Labels
+                    profitHtml = `<div class="profit-box"><div class="profit-title">財務損益表 (內部)</div><div class="profit-row"><span>合約+追加+稅金</span> <span>$${formatNumber(totalVal)}</span></div><div class="profit-row"><span>發包總支</span> <span>$${formatNumber(totalCost)}</span></div><div class="profit-final"><span>預估毛利</span> <span class="${profitClass}">$${formatNumber(profit)}</span></div></div>`; 
                 } 
                 
                 let paymentsHtml = ''; (p.payments || []).forEach((pay, idx) => { 
@@ -612,7 +649,23 @@
         function renderLogs(p){const c=document.getElementById('log-list-container'); c.innerHTML=''; (p.logs||[]).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(l=>{c.innerHTML+=`<div class="log-item"><button class="log-delete" onclick="deleteLog(${l.id})">×</button><div class="log-date">${formatDate(l.date)}</div><div class="log-content">${safe(l.content)}</div>${l.photo?`<img src="${l.photo}" class="log-image">`:''}</div>`;});}
         
         async function deleteLog(lid){ if(!confirm('刪除?'))return; const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const updatedLogs = p.logs.filter(k=>k.id!==lid); await updateCloud(collection, currentId, { logs: updatedLogs }); p.logs = updatedLogs; renderLogs(p); }
-        async function updateStageField(sid, f, v) { const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const val = (f === 'cost') ? parseCurrency(v) : v; const updateKey = `stages.${sid}.${f}`; await updateCloud(collection, currentId, { [updateKey]: val }); }
+        
+        // Fix 1: Update Stage Field Locally
+        async function updateStageField(sid, f, v) { 
+            const collection = currentType === 'design' ? "design_projects" : "eng_projects"; 
+            const val = (f === 'cost') ? parseCurrency(v) : v; 
+            
+            // Fix 1: Local Update
+            const list = currentType === 'design' ? designProjects : engProjects;
+            const p = list.find(x => x.id === currentId);
+            if(p && p.stages[sid]) {
+                p.stages[sid][f] = val;
+            }
+
+            const updateKey = `stages.${sid}.${f}`; 
+            await updateCloud(collection, currentId, { [updateKey]: val }); 
+        }
+
         async function toggleStageEnable(sid, e) { const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const updateKey = `stages.${sid}.enabled`; await updateCloud(collection, currentId, { [updateKey]: e }); const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); if(!p.stages[sid]) p.stages[sid]={}; p.stages[sid].enabled = e; renderStages(p, currentType); }
         
         async function togglePayment(pid, idx, type) { 
@@ -730,7 +783,24 @@
                 </div>`;
             });
         }
-        function renderList(type) { let list=[], cid=''; if(type==='design'){list=designProjects;cid='design-list-container';}else if(type==='engineering'){list=engProjects.filter(p=>p.status==='active'||p.status==='suspended');cid='engineering-list-container';}else{list=engProjects.filter(p=>p.status==='warranty');cid='warranty-list-container';} const c=document.getElementById(cid); c.innerHTML=''; list.sort((a,b)=>(a.status==='suspended'?1:-1)); if(list.length===0) c.innerHTML='<div style="text-align:center;color:#666;margin-top:30px">暫無案件</div>'; list.forEach(p=>{ const defs = type === 'design' ? STAGES_DESIGN_DEF : STAGES_ENG_DEF; const order = p.stageOrder || (type === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER); let currentProgress = '尚未開始', total = 0, done = 0; for(let i=0; i<order.length; i++) { const sid = order[i]; const s = (p.stages && p.stages[sid]) || {}; const isEnabled = type === 'design' ? true : (s.enabled !== false); if(isEnabled) { total++; if(s.done) { done++; let sName = defs[sid] || s.name; currentProgress = sName; } } } const pct=total===0?0:Math.round((done/total)*100); let tags=''; if(p.status==='tracking')tags+='<span class="tag tag-track">追蹤中</span>'; if(p.status==='suspended')tags+='<span class="tag tag-suspend">暫緩</span>'; if(p.status==='warranty')tags+='<span class="tag tag-warranty">保固中</span>'; let oType=type==='warranty'?'engineering':type; c.innerHTML+=`<div class="project-card" onclick="openDetail('${type==='warranty'?'warranty':oType}','${p.id}')"><div style="position:relative;z-index:2;"><div style="font-weight:bold;color:var(--text-primary)">${safe(p.name)} ${tags}</div><div style="font-size:0.9rem;color:var(--text-secondary)">${safe(p.client||'')}</div><div class="card-progress-text">目前進度：${safe(currentProgress)}</div></div><div class="progress-bg"><div class="progress-fill" style="width:${pct}%"></div></div></div>`; }); }
+        function renderList(type) { let list=[], cid=''; if(type==='design'){list=designProjects;cid='design-list-container';}else if(type==='engineering'){list=engProjects.filter(p=>p.status==='active'||p.status==='suspended');cid='engineering-list-container';}else{list=engProjects.filter(p=>p.status==='warranty');cid='warranty-list-container';} const c=document.getElementById(cid); c.innerHTML=''; list.sort((a,b)=>(a.status==='suspended'?1:-1)); if(list.length===0) c.innerHTML='<div style="text-align:center;color:#666;margin-top:30px">暫無案件</div>'; list.forEach(p=>{ const defs = type === 'design' ? STAGES_DESIGN_DEF : STAGES_ENG_DEF; const order = p.stageOrder || (type === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER); 
+            // Fix 4: List Progress
+            const prog = calculateProgress(p, type);
+            const pct = prog.activeCount===0?0:Math.round((prog.doneCount/prog.activeCount)*100); 
+            let tags=''; if(p.status==='tracking')tags+='<span class="tag tag-track">追蹤中</span>'; if(p.status==='suspended')tags+='<span class="tag tag-suspend">暫緩</span>'; if(p.status==='warranty')tags+='<span class="tag tag-warranty">保固中</span>'; let oType=type==='warranty'?'engineering':type; 
+            // Current Progress Name
+            let currentProgress = '尚未開始';
+            if(prog.doneCount > 0) {
+                // Find last done
+                for(let i=order.length-1; i>=0; i--) {
+                    const s = p.stages[order[i]];
+                    if(s && s.enabled!==false && s.done) {
+                        currentProgress = s.name || defs[order[i]];
+                        break;
+                    }
+                }
+            }
+            c.innerHTML+=`<div class="project-card" onclick="openDetail('${type==='warranty'?'warranty':oType}','${p.id}')"><div style="position:relative;z-index:2;"><div style="font-weight:bold;color:var(--text-primary)">${safe(p.name)} ${tags}</div><div style="font-size:0.9rem;color:var(--text-secondary)">${safe(p.client||'')}</div><div class="card-progress-text">目前進度：${safe(currentProgress)}</div></div><div class="progress-bg"><div class="progress-fill" style="width:${pct}%"></div></div></div>`; }); }
         
         function renderActionBar(type, status) { 
             const b = document.getElementById('action-bar-container'); b.innerHTML = ''; 
