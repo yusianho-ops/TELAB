@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>對錯空間 v25.18 (Log Edit & Date)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-touch-icon" href="icon.png">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#202124">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -71,16 +74,17 @@
         .toggle-switch { position: relative; display: inline-block; width: 34px; height: 20px; margin-right: 10px; } .toggle-switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 34px; } .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; } input:checked + .slider { background-color: var(--blue); } input:checked + .slider:before { transform: translateX(14px); }
         
-        /* 勾選框修正：全域勾選狀態樣式 */
-        .custom-checkbox { width: 22px; height: 22px; border: 2px solid var(--text-secondary); border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; transition: background 0.1s; cursor: pointer; }
-        .custom-checkbox.checked { background: var(--teal); border-color: var(--teal) !important; color: #202124; }
-        .custom-checkbox.checked::after { content: '✓'; font-weight: bold; }
-        
-        .checklist-item.checked .custom-checkbox { background: var(--green); border-color: var(--green); color: #202124; } 
+        /* 勾選欄位符號顯示修正 */
+        .custom-checkbox { width: 22px; height: 22px; border: 2px solid var(--text-secondary); border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; transition: background 0.1s; cursor: pointer; color: transparent; font-weight: bold; }
+        .checklist-item.checked .custom-checkbox, .custom-checkbox.checked { background: var(--green); border-color: var(--green); color: #202124; } 
+        .checklist-item.checked .custom-checkbox::after, .custom-checkbox.checked::after { content: '✓'; }
+        .payment-check-area .custom-checkbox.checked { background: var(--teal) !important; border-color: var(--teal) !important; color: #202124; }
         
         .stage-details { margin-top: 10px; padding-left: 0; border-left: 2px solid var(--divider); padding-left: 10px; margin-left: 35px; }
         .date-row { display: flex; gap: 10px; margin-top: 8px; } .date-group { flex: 1; } .date-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 2px; }
-        .mini-date { width: 100%; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); padding: 6px; border-radius: 6px; font-size: 0.85rem; color-scheme: dark; }
+        
+        /* 日期顯示樣式優化：防止換行並調整字體 */
+        .mini-date, .pay-date-input { width: 100%; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); padding: 6px 4px; border-radius: 6px; font-size: 0.8rem; color-scheme: dark; white-space: nowrap; overflow: hidden; letter-spacing: -0.3px; }
 
         /* V25: 編輯模式按鈕 */
         .btn-edit-mode { background: transparent; border: 1px solid var(--text-secondary); color: var(--text-secondary); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; cursor: pointer;}
@@ -108,7 +112,6 @@
         
         .pay-linked-text { font-size: 0.8rem; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .pay-amount-input { width: 90px; background: #202124; border: 1px solid var(--divider); color: var(--yellow); text-align: right; border-radius: 6px; padding: 4px 6px; font-weight: bold; font-size: 0.95rem; }
-        .pay-date-input { font-size: 0.75rem; color: var(--text-secondary); background: transparent; border: none; text-align: right; width: 100px; color-scheme: dark; margin-top: 2px; }
         
         .payment-tabs { display: flex; border-bottom: 1px solid var(--divider); margin-bottom: 15px; }
         .tab-btn { flex: 1; padding: 12px; background: none; border: none; color: var(--text-secondary); border-bottom: 2px solid transparent; cursor: pointer; font-size: 1rem; } .tab-btn.active { color: var(--teal); border-bottom-color: var(--teal); font-weight: bold; }
