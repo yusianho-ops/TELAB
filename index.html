@@ -83,7 +83,7 @@
         .stage-details { margin-top: 10px; padding-left: 0; border-left: 2px solid var(--divider); padding-left: 10px; margin-left: 35px; }
         .date-row { display: flex; gap: 10px; margin-top: 8px; } .date-group { flex: 1; } .date-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 2px; }
         
-        /* 日期顯示樣式優化：防止換行並調整字體 */
+        /* 日期顯示樣式優化 */
         .mini-date, .pay-date-input { width: 100%; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); padding: 6px 4px; border-radius: 6px; font-size: 0.8rem; color-scheme: dark; white-space: nowrap; overflow: hidden; letter-spacing: -0.3px; }
 
         /* V25: 編輯模式按鈕 */
@@ -101,7 +101,7 @@
         .log-delete { position: absolute; top: 10px; right: 10px; color: var(--red); background: none; border: none; cursor: pointer; font-size: 1.2rem; }
         .log-edit { position: absolute; top: 10px; right: 40px; color: var(--text-secondary); background: none; border: 1px solid var(--text-secondary); border-radius:12px; cursor: pointer; font-size: 0.8rem; padding: 2px 8px; }
 
-        /* 收款進度三欄佈局 CSS */
+        /* 收款進度三欄佈局 */
         .payment-row { display: flex; flex-direction: row; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-top: 10px; position: relative; }
         .pay-col-check { flex: 0 0 30px; display: flex; justify-content: center; align-items: center; }
         .pay-col-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
@@ -113,10 +113,19 @@
         .pay-linked-text { font-size: 0.8rem; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .pay-amount-input { width: 90px; background: #202124; border: 1px solid var(--divider); color: var(--yellow); text-align: right; border-radius: 6px; padding: 4px 6px; font-weight: bold; font-size: 0.95rem; }
         
+        /* 收款進度摺疊樣式 */
+        .pay-accordion-header { background: var(--surface-color); padding: 12px 15px; margin-top: 15px; border-radius: 8px; border-left: 5px solid var(--teal); display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; color: var(--teal); }
+        .pay-accordion-header::after { content: '▼'; font-size: 0.7rem; transition: transform 0.3s; }
+        .pay-accordion-header.collapsed::after { transform: rotate(-90deg); }
+        .pay-accordion-content { margin-bottom: 20px; }
+        .pay-accordion-content.hidden { display: none; }
+        .btn-manual-move { background: rgba(255,255,255,0.1); border: 1px solid var(--divider); color: var(--text-secondary); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
+
         .payment-tabs { display: flex; border-bottom: 1px solid var(--divider); margin-bottom: 15px; }
         .tab-btn { flex: 1; padding: 12px; background: none; border: none; color: var(--text-secondary); border-bottom: 2px solid transparent; cursor: pointer; font-size: 1rem; } .tab-btn.active { color: var(--teal); border-bottom-color: var(--teal); font-weight: bold; }
         .payment-card { background: var(--surface-color); padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid var(--teal); }
-        .payment-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; color: var(--text-primary); } .payment-amount { font-size: 0.9rem; color: var(--yellow); margin-bottom: 10px; }
+        .payment-title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
+        .payment-title { font-weight: bold; font-size: 1.1rem; color: var(--text-primary); } .payment-amount { font-size: 0.9rem; color: var(--yellow); margin-bottom: 10px; }
         
         .stage-selector { background: #202124; border: 1px solid var(--divider); color: var(--text-secondary); padding: 4px; border-radius: 4px; width: 100%; font-size: 0.8rem; margin-top: 2px; }
         .profit-box { margin-top: 15px; background: rgba(0,0,0,0.4); border: 1px solid var(--divider); border-radius: 8px; padding: 10px; }
@@ -735,55 +744,125 @@
             renderPaymentPage();
         }
 
-        function renderPaymentPage() { 
-            const container = document.getElementById('payment-content-container'); container.innerHTML = ''; 
-            const list = currentPaymentTab === 'design' ? designProjects : engProjects; 
-            if(list.length === 0) { container.innerHTML = '<div style="text-align:center;color:#666;margin-top:30px">暫無合約</div>'; return; } 
-            list.forEach(p => { 
-                let totalVal = 0;
-                if(currentPaymentTab === 'design') {
-                    const price = parseInt(p.designPrice) || 0;
-                    const tax = (p.taxEnabled === true) ? Math.round(price * 0.05) : 0;
-                    totalVal = price + tax;
-                } else {
-                    const base = parseInt(p.engBasePrice) || 0;
-                    const vary = parseInt(p.engVarPrice) || 0;
-                    const isSup = p.supervisionEnabled === true;
-                    const supRate = p.supervisionRate || 0.05;
-                    const supFee = isSup ? Math.round((base + vary) * supRate) : 0;
-                    const sumForTax = base + vary + supFee;
-                    const tax = (p.taxEnabled === true) ? Math.round(sumForTax * 0.05) : 0;
-                    totalVal = sumForTax + tax;
-                }
+        // 新增：摺疊面板切換函數
+        function togglePaymentAccordion(id) {
+            const content = document.getElementById(id);
+            const header = content.previousElementSibling;
+            header.classList.toggle('collapsed');
+            content.classList.toggle('hidden');
+        }
 
-                let profitHtml = ''; 
-                if (currentPaymentTab === 'engineering') { 
-                    let totalCost = 0; 
-                    Object.values(p.stages || {}).forEach(s => { 
-                        if (s.enabled && s.cost) {
-                            let c = parseInt(s.cost || 0);
-                            if (s.taxEnabled) c += Math.round(c * 0.05);
-                            totalCost += c; 
-                        }
-                    }); 
-                    const profit = totalVal - totalCost; const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative'; 
-                    profitHtml = `<div class="profit-box"><div class="profit-title">財務損益表 (內部)</div><div class="profit-row"><span>合約+追加+監工+稅金</span> <span>$${formatNumber(totalVal)}</span></div><div class="profit-row"><span>發包總支 (含稅)</span> <span>$${formatNumber(totalCost)}</span></div><div class="profit-final"><span>預估毛利</span> <span class="${profitClass}">$${formatNumber(profit)}</span></div></div>`; 
-                } 
+        // 新增：手動切換收款狀態
+        async function toggleManualPaymentDone(pid, type) {
+            const list = type === 'design' ? designProjects : engProjects;
+            const collection = type === 'design' ? "design_projects" : "eng_projects";
+            const p = list.find(x => x.id === pid);
+            
+            // 如果目前沒設定過手動狀態，則根據自動邏輯取反；如果設定過，則直接取反
+            const autoDone = p.payments && p.payments.length > 0 && p.payments.every(pay => pay.done);
+            const currentStatus = p.manualPaymentDone !== undefined ? p.manualPaymentDone : autoDone;
+            
+            await updateCloud(collection, pid, { manualPaymentDone: !currentStatus });
+            renderPaymentPage();
+        }
+
+        function renderPaymentPage() { 
+            const container = document.getElementById('payment-content-container'); 
+            container.innerHTML = ''; 
+            const list = currentPaymentTab === 'design' ? designProjects : engProjects; 
+            
+            if(list.length === 0) { container.innerHTML = '<div style="text-align:center;color:#666;margin-top:30px">暫無合約</div>'; return; } 
+
+            // 分類案件：未收款完畢 vs 已收款完畢
+            const pendingList = [];
+            const completedList = [];
+
+            list.forEach(p => {
+                const autoDone = p.payments && p.payments.length > 0 && p.payments.every(pay => pay.done);
+                const isDone = p.manualPaymentDone !== undefined ? p.manualPaymentDone : autoDone;
+                if (isDone) completedList.push(p);
+                else pendingList.push(p);
+            });
+
+            // 渲染兩個區塊
+            renderGroup(pendingList, '未收款完畢', 'pay-pending-content', false);
+            renderGroup(completedList, '已收款完畢', 'pay-completed-content', true);
+
+            function renderGroup(groupList, title, id, isDefaultCollapsed) {
+                const header = document.createElement('div');
+                header.className = `pay-accordion-header ${isDefaultCollapsed ? 'collapsed' : ''}`;
+                header.innerText = `${title} (${groupList.length})`;
+                header.onclick = () => togglePaymentAccordion(id);
+                container.appendChild(header);
+
+                const contentDiv = document.createElement('div');
+                contentDiv.id = id;
+                contentDiv.className = `pay-accordion-content ${isDefaultCollapsed ? 'hidden' : ''}`;
                 
-                let paymentsHtml = ''; (p.payments || []).forEach((pay, idx) => { 
-                    let amountDisplay = '待計算'; 
-                    if (totalVal > 0) { if (pay.ratio) amountDisplay = formatNumber(Math.round(totalVal * pay.ratio)); else if (pay.amount) amountDisplay = formatNumber(pay.amount); } 
-                    let linkedStageName = ''; 
-                    if (currentPaymentTab === 'engineering' && pay.linkedStage) { 
-                        let sName = STAGES_ENG_DEF[pay.linkedStage] || (p.stages[pay.linkedStage]?.name) || "未知";
-                        linkedStageName = `<div style="font-size:0.8rem; color:var(--text-secondary)">連結：${safe(sName)}</div>`; 
-                    } 
-                    paymentsHtml += `<div class="payment-row"><div class="pay-col-check"><div class="custom-checkbox ${pay.done ? 'checked' : ''}" style="border-color:var(--teal)" onclick="togglePayment('${p.id}', ${idx}, '${currentPaymentTab}')"></div></div><div class="pay-col-name"><div style="font-weight:bold;">${safe(pay.name)}</div>${linkedStageName}</div><div class="pay-col-info"><div style="color:var(--yellow); font-weight:bold;">$${amountDisplay}</div><div class="pay-date-input">${formatDate(pay.date)}</div></div></div>`; 
-                }); 
-                const div = document.createElement('div'); div.className = 'payment-card'; 
-                div.innerHTML = `<div class="payment-title">${safe(p.name)} <span style="font-size:0.8rem; font-weight:normal; color:#888;">(${safe(p.client||'')})</span></div><div class="payment-amount">總額：$${formatNumber(totalVal)}</div>${profitHtml}${paymentsHtml}`; 
-                container.appendChild(div); 
-            }); 
+                if (groupList.length === 0) {
+                    contentDiv.innerHTML = '<div style="padding:20px; text-align:center; color:#666; font-size:0.9rem;">無項目</div>';
+                } else {
+                    groupList.forEach(p => {
+                        let totalVal = 0;
+                        if(currentPaymentTab === 'design') {
+                            const price = parseInt(p.designPrice) || 0;
+                            const tax = (p.taxEnabled === true) ? Math.round(price * 0.05) : 0;
+                            totalVal = price + tax;
+                        } else {
+                            const base = parseInt(p.engBasePrice) || 0;
+                            const vary = parseInt(p.engVarPrice) || 0;
+                            const isSup = p.supervisionEnabled === true;
+                            const supRate = p.supervisionRate || 0.05;
+                            const supFee = isSup ? Math.round((base + vary) * supRate) : 0;
+                            const sumForTax = base + vary + supFee;
+                            const tax = (p.taxEnabled === true) ? Math.round(sumForTax * 0.05) : 0;
+                            totalVal = sumForTax + tax;
+                        }
+
+                        let profitHtml = ''; 
+                        if (currentPaymentTab === 'engineering') { 
+                            let totalCost = 0; 
+                            Object.values(p.stages || {}).forEach(s => { 
+                                if (s.enabled && s.cost) {
+                                    let c = parseInt(s.cost || 0);
+                                    if (s.taxEnabled) c += Math.round(c * 0.05);
+                                    totalCost += c; 
+                                }
+                            }); 
+                            const profit = totalVal - totalCost; const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative'; 
+                            profitHtml = `<div class="profit-box"><div class="profit-title">財務損益表 (內部)</div><div class="profit-row"><span>合約+追加+監工+稅金</span> <span>$${formatNumber(totalVal)}</span></div><div class="profit-row"><span>發包總支 (含稅)</span> <span>$${formatNumber(totalCost)}</span></div><div class="profit-final"><span>預估毛利</span> <span class="${profitClass}">$${formatNumber(profit)}</span></div></div>`; 
+                        } 
+                        
+                        let paymentsHtml = ''; (p.payments || []).forEach((pay, idx) => { 
+                            let amountDisplay = '待計算'; 
+                            if (totalVal > 0) { if (pay.ratio) amountDisplay = formatNumber(Math.round(totalVal * pay.ratio)); else if (pay.amount) amountDisplay = formatNumber(pay.amount); } 
+                            let linkedStageName = ''; 
+                            if (currentPaymentTab === 'engineering' && pay.linkedStage) { 
+                                let sName = STAGES_ENG_DEF[pay.linkedStage] || (p.stages[pay.linkedStage]?.name) || "未知";
+                                linkedStageName = `<div style="font-size:0.8rem; color:var(--text-secondary)">連結：${safe(sName)}</div>`; 
+                            } 
+                            paymentsHtml += `<div class="payment-row"><div class="pay-col-check"><div class="custom-checkbox ${pay.done ? 'checked' : ''}" style="border-color:var(--teal)" onclick="togglePayment('${p.id}', ${idx}, '${currentPaymentTab}')"></div></div><div class="pay-col-name"><div style="font-weight:bold;">${safe(pay.name)}</div>${linkedStageName}</div><div class="pay-col-info"><div style="color:var(--yellow); font-weight:bold;">$${amountDisplay}</div><div class="pay-date-input">${formatDate(pay.date)}</div></div></div>`; 
+                        }); 
+
+                        const card = document.createElement('div'); 
+                        card.className = 'payment-card'; 
+                        const autoDone = p.payments && p.payments.length > 0 && p.payments.every(pay => pay.done);
+                        const isDone = p.manualPaymentDone !== undefined ? p.manualPaymentDone : autoDone;
+
+                        card.innerHTML = `
+                            <div class="payment-title-row">
+                                <div class="payment-title">${safe(p.name)} <span style="font-size:0.8rem; font-weight:normal; color:#888;">(${safe(p.client||'')})</span></div>
+                                <button class="btn-manual-move" onclick="toggleManualPaymentDone('${p.id}', '${currentPaymentTab}')">
+                                    ${isDone ? '移回未收款' : '移入已收款'}
+                                </button>
+                            </div>
+                            <div class="payment-amount">總額：$${formatNumber(totalVal)}</div>
+                            ${profitHtml}${paymentsHtml}`; 
+                        contentDiv.appendChild(card);
+                    });
+                }
+                container.appendChild(contentDiv);
+            }
         }
 
         async function addLog(){ 
