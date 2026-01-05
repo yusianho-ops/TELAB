@@ -74,16 +74,12 @@
         .toggle-switch { position: relative; display: inline-block; width: 34px; height: 20px; margin-right: 10px; } .toggle-switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 34px; } .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; } input:checked + .slider { background-color: var(--blue); } input:checked + .slider:before { transform: translateX(14px); }
         
-        /* 勾選欄位符號顯示修正 */
         .custom-checkbox { width: 22px; height: 22px; border: 2px solid var(--text-secondary); border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; transition: background 0.1s; cursor: pointer; color: transparent; font-weight: bold; }
         .checklist-item.checked .custom-checkbox, .custom-checkbox.checked { background: var(--green); border-color: var(--green); color: #202124; } 
         .checklist-item.checked .custom-checkbox::after, .custom-checkbox.checked::after { content: '✓'; }
-        .payment-check-area .custom-checkbox.checked { background: var(--teal) !important; border-color: var(--teal) !important; color: #202124; }
         
         .stage-details { margin-top: 10px; padding-left: 0; border-left: 2px solid var(--divider); padding-left: 10px; margin-left: 35px; }
         .date-row { display: flex; gap: 10px; margin-top: 8px; } .date-group { flex: 1; } .date-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 2px; }
-        
-        /* 日期顯示樣式優化 */
         .mini-date, .pay-date-input { width: 100%; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); padding: 6px 4px; border-radius: 6px; font-size: 0.8rem; color-scheme: dark; white-space: nowrap; overflow: hidden; letter-spacing: -0.3px; }
 
         /* V25: 編輯模式按鈕 */
@@ -101,7 +97,7 @@
         .log-delete { position: absolute; top: 10px; right: 10px; color: var(--red); background: none; border: none; cursor: pointer; font-size: 1.2rem; }
         .log-edit { position: absolute; top: 10px; right: 40px; color: var(--text-secondary); background: none; border: 1px solid var(--text-secondary); border-radius:12px; cursor: pointer; font-size: 0.8rem; padding: 2px 8px; }
 
-        /* 收款進度三欄佈局 */
+        /* 收款進度三欄佈局 CSS */
         .payment-row { display: flex; flex-direction: row; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-top: 10px; position: relative; }
         .pay-col-check { flex: 0 0 30px; display: flex; justify-content: center; align-items: center; }
         .pay-col-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
@@ -437,10 +433,12 @@
         }
 
         async function updateCloud(collection, id, data) { await db.collection(collection).doc(id).update(data); }
+        
         function updateField(key, value) {
             const collection = currentType === 'design' ? "design_projects" : "eng_projects";
             let val = value;
             if (['designPrice','engBasePrice','engVarPrice'].includes(key)) val = parseCurrency(value);
+            
             const list = currentType === 'design' ? designProjects : engProjects;
             const p = list.find(x => x.id === currentId);
             if(p) { 
@@ -564,9 +562,9 @@
                 document.getElementById('btn-edit-mode').classList.remove('active');
                 document.getElementById('btn-add-stage').style.display = 'none';
 
-                const list = type === 'design' ? designProjects : engProjects; 
+                const list = (type === 'design') ? designProjects : engProjects; 
                 const p = list.find(x => x.id === id); 
-                if(!p) { alert('查與此案件資料'); return; }
+                if(!p) { alert('查無此案件資料'); return; }
 
                 ['name', 'client', 'phone', 'address', 'parking', 'code'].forEach(key => { document.getElementById('d-' + key).value = p[key] || ''; }); 
                 
@@ -744,7 +742,6 @@
             renderPaymentPage();
         }
 
-        // 新增：摺疊面板切換函數
         function togglePaymentAccordion(id) {
             const content = document.getElementById(id);
             const header = content.previousElementSibling;
@@ -752,16 +749,12 @@
             content.classList.toggle('hidden');
         }
 
-        // 新增：手動切換收款狀態
         async function toggleManualPaymentDone(pid, type) {
             const list = type === 'design' ? designProjects : engProjects;
             const collection = type === 'design' ? "design_projects" : "eng_projects";
             const p = list.find(x => x.id === pid);
-            
-            // 如果目前沒設定過手動狀態，則根據自動邏輯取反；如果設定過，則直接取反
             const autoDone = p.payments && p.payments.length > 0 && p.payments.every(pay => pay.done);
             const currentStatus = p.manualPaymentDone !== undefined ? p.manualPaymentDone : autoDone;
-            
             await updateCloud(collection, pid, { manualPaymentDone: !currentStatus });
             renderPaymentPage();
         }
@@ -770,10 +763,8 @@
             const container = document.getElementById('payment-content-container'); 
             container.innerHTML = ''; 
             const list = currentPaymentTab === 'design' ? designProjects : engProjects; 
-            
             if(list.length === 0) { container.innerHTML = '<div style="text-align:center;color:#666;margin-top:30px">暫無合約</div>'; return; } 
 
-            // 分類案件：未收款完畢 vs 已收款完畢
             const pendingList = [];
             const completedList = [];
 
@@ -784,7 +775,6 @@
                 else pendingList.push(p);
             });
 
-            // 渲染兩個區塊
             renderGroup(pendingList, '未收款完畢', 'pay-pending-content', false);
             renderGroup(completedList, '已收款完畢', 'pay-completed-content', true);
 
