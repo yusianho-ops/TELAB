@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>對錯空間 v26.40 (Core Restored + Advanced SOP)</title>
+    <title>對錯空間 v26.45 (Core Restored + SOP Fix)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#202124">
@@ -57,16 +57,16 @@
         .tag { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
         .tag-track { background: var(--yellow); color: #333; } .tag-suspend { background: var(--red); color: white; }
 
-        /* Detail Page - Horizontal Alignment */
+        /* Detail Page - Layouts */
         .detail-section { background: var(--surface-color); padding: 20px; border-radius: 12px; margin-bottom: 15px; }
         .detail-title { font-size: 0.9rem; font-weight: bold; color: var(--blue); margin-bottom: 15px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center;}
-        .input-row { margin-bottom: 15px; display: flex; flex-direction: column; } 
+        .input-row { margin-bottom: 15px; } 
         .input-row-flex { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 15px; }
         .input-label { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px; display: block; }
         .detail-input { width: 100%; padding: 12px; box-sizing: border-box; background: #202124; border: 1px solid var(--divider); border-radius: 8px; font-size: 1rem; color: var(--text-primary); }
         .detail-input:focus { border-color: var(--blue); outline: none; }
 
-        /* Checklist & Stages */
+        /* Stages & Checklist */
         .checklist-item { border-bottom: 1px solid var(--divider); padding: 15px 0; background: var(--surface-color); }
         .check-header { display: flex; align-items: center; margin-bottom: 10px; justify-content: space-between; position: relative; z-index: 10; }
         .custom-checkbox { width: 22px; height: 22px; border: 2px solid var(--text-secondary); border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; cursor: pointer; color: transparent; font-weight: bold; }
@@ -77,7 +77,7 @@
         .date-row { display: flex; gap: 10px; margin-top: 8px; align-items: center; } .date-group { flex: 1; } .date-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 2px; }
         .mini-date, .pay-date-input, .sop-date-input { width: 100%; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); padding: 8px 4px; border-radius: 6px; font-size: 0.85rem; color-scheme: dark; height: 38px; box-sizing: border-box;}
 
-        /* Payment Styles */
+        /* Payment Rows */
         .payment-row { display: flex; flex-direction: row; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-top: 10px; }
         .pay-col-check { flex: 0 0 30px; display: flex; justify-content: center; align-items: center; }
         .pay-col-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
@@ -87,45 +87,46 @@
         .stage-selector { background: #202124; border: 1px solid var(--divider); color: var(--text-secondary); padding: 8px 6px; border-radius: 6px; width: 100%; font-size: 0.85rem; height: 38px; box-sizing: border-box; }
         .pay-accordion-header { background: var(--surface-color); padding: 12px 15px; margin-top: 15px; border-radius: 8px; border-left: 5px solid var(--teal); display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; color: var(--teal); }
         .pay-accordion-content.hidden { display: none; }
-        .payment-card { background: var(--surface-color); padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid var(--teal); }
 
-        /* SOP Styles */
-        .sop-header { background: rgba(252, 173, 112, 0.1); border-left: 5px solid var(--orange); padding: 12px; margin-top: 10px; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-        .sop-header.collapsed::after { content: '▶'; } .sop-header::after { content: '▼'; font-size: 0.7rem; transition: transform 0.3s; }
-        .sop-content.hidden { display: none; }
-        .sop-item-row { display: flex; align-items: center; gap: 10px; padding: 10px 5px; border-bottom: 1px dashed rgba(255,255,255,0.05); }
-        .sop-text { flex: 1; font-size: 0.95rem; line-height: 1.2; }
-        .sop-tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; color: var(--text-secondary); border-bottom: 2px solid transparent; }
-        .sop-tab.active { color: var(--orange); border-bottom-color: var(--orange); font-weight: bold; }
-        .btn-sop-action { background: none; border: 1px solid var(--orange); color: var(--orange); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; margin-top: 5px; }
-
-        /* Logs & Photos */
+        /* Logs */
         .log-input-area { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--divider); }
         .btn-add-log { background: var(--blue); color: #202124; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
         .log-item { background: #2b2c2f; border-radius: 8px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--blue); position: relative; }
         .log-image { width: 100%; border-radius: 6px; margin-top: 10px; border: 1px solid var(--divider); }
         .log-delete { position: absolute; top: 10px; right: 10px; color: var(--red); background: none; border: none; cursor: pointer; font-size: 1.2rem; }
 
-        /* Modals */
+        /* SOP Styles */
+        .sop-header { background: rgba(252, 173, 112, 0.1); border-left: 5px solid var(--orange); padding: 12px; margin-top: 10px; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .sop-header.collapsed::after { content: '▶'; } .sop-header::after { content: '▼'; font-size: 0.7rem; transition: transform 0.3s; }
+        .sop-content.hidden { display: none; }
+        .sop-item-row { display: flex; align-items: center; gap: 10px; padding: 10px 5px; border-bottom: 1px dashed rgba(255,255,255,0.05); position: relative; }
+        .sop-text { flex: 1; font-size: 0.95rem; line-height: 1.2; }
+        .sop-date-col { width: 140px; flex-shrink: 0; }
+        .sop-tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; color: var(--text-secondary); border-bottom: 2px solid transparent; }
+        .sop-tab.active { color: var(--orange); border-bottom-color: var(--orange); font-weight: bold; }
+        .btn-sop-action { background: none; border: 1px solid var(--orange); color: var(--orange); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; margin-top: 5px; }
+
+        /* Sync Modal */
         .modal-sync { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; }
         .sync-box { background: var(--surface-color); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; border: 1px solid var(--divider); }
         .sync-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid var(--divider); }
 
-        /* General UI */
+        /* UI Helpers */
+        .btn-mini-del { background: none; border: none; color: var(--red); font-size: 1.2rem; cursor: pointer; flex-shrink: 0; padding: 5px; }
         .menu-btn { display: block; width: 100%; padding: 20px; margin-bottom: 15px; background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--divider); border-radius: 12px; font-size: 1.1rem; text-align: left; cursor: pointer; position: relative; } 
         .menu-btn .count-badge { float: right; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; font-size: 0.9rem; color: var(--text-secondary); }
         .fab { position: fixed; bottom: 30px; right: 30px; width: 56px; height: 56px; background: var(--blue); color: #202124; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 200; cursor: pointer; }
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); align-items: center; justify-content: center; } .modal-content { background: var(--surface-color); padding: 25px; border-radius: 15px; width: 85%; max-width: 350px; }
-        .btn-mini-del { background: none; border: none; color: var(--red); font-size: 1.2rem; cursor: pointer; flex-shrink: 0; padding: 5px; }
-        .action-bar { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; } .action-btn { flex: 1; padding: 15px; border: none; border-radius: 12px; font-size: 0.95rem; cursor: pointer; color: #202124; font-weight: bold; min-width: 100px;} 
-        .toggle-switch { position: relative; display: inline-block; width: 34px; height: 20px; } .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .action-bar { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; } .action-btn { flex: 1; padding: 15px; border: none; border-radius: 12px; font-size: 0.95rem; cursor: pointer; color: #202124; font-weight: bold; min-width: 100px;}
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 34px; } .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; } input:checked + .slider { background-color: var(--blue); } input:checked + .slider:before { transform: translateX(14px); }
         #advancement-alert { background: rgba(242, 139, 130, 0.2); border: 1px solid var(--red); color: var(--red); padding: 12px; margin-bottom: 20px; border-radius: 8px; display: none; font-weight: bold; text-align: center; }
         .btn-edit-mode.active { background: var(--blue); color: #202124; }
     </style>
 </head>
 <body>
 
-    <div id="loading-overlay" style="display:none;"><div id="loading-msg">資料載入中...</div></div>
+    <div id="loading-overlay"><div id="loading-msg">資料載入中...</div></div>
 
     <div id="login-overlay">
         <div class="login-box">
@@ -140,7 +141,7 @@
     <header>
         <button id="back-btn" class="header-back" onclick="goBack()">‹ 返回</button>
         <h1 id="page-title">對錯空間實驗室</h1>
-        <button onclick="logout()" style="position:absolute; right:15px; background:none; border:none; color:var(--text-secondary); cursor:pointer;">登出</button>
+        <button onclick="logout()" style="position:absolute; right:15px; background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.9rem;">登出</button>
     </header>
 
     <div id="home-page" class="page active container">
@@ -165,7 +166,6 @@
         <button class="menu-btn" onclick="navigateTo('sop-tpl-page')" style="border-left: 5px solid var(--orange);">SOP 範本管理</button>
     </div>
 
-    <!-- SOP 範本頁面 -->
     <div id="sop-tpl-page" class="page container">
         <div style="display:flex; border-bottom:1px solid var(--divider); margin-bottom:15px;">
             <div class="sop-tab active" id="sop-tab-design" onclick="switchSopTpl('design')">設計 SOP</div>
@@ -211,7 +211,6 @@
             </div>
         </div>
 
-        <!-- SOP 執行區塊 -->
         <div class="detail-section" style="border-left: 5px solid var(--orange);">
             <div class="detail-title" style="color:var(--orange)">
                 SOP 執行清單
@@ -221,11 +220,9 @@
             <button class="btn-sop-action" style="width:100%; margin-top:15px;" onclick="addLocalSopStage()">+ 新增自訂階段標題</button>
         </div>
 
-        <!-- 匯入 SOP 彈窗 -->
         <div id="sync-sop-modal" class="modal-sync">
             <div class="sync-box">
                 <h3 style="color:var(--orange); margin-top:0;">匯入 SOP 範本</h3>
-                <p style="font-size:0.85rem; color:var(--text-secondary);">請選擇匯入方式：</p>
                 <button class="login-btn" style="background:var(--red); margin-bottom:20px;" onclick="importSopFromTemplate('all')">⚠️ 全部覆蓋匯入</button>
                 <hr style="border:0; border-top:1px solid var(--divider); margin-bottom:15px;">
                 <p style="font-size:0.85rem; color:var(--text-secondary);">或是選擇項目加入：</p>
@@ -326,7 +323,7 @@
 
         let designProjects = [], engProjects = [], sopTemplates = { design: [], engineering: [] };
         let currentType = '', currentId = '', calDate = new Date(), addModeType = '', currentSopTplType = 'design', currentPaymentTab = 'design';
-        let isEditMode = false, editingLogId = null, tempPhotoFile = null;
+        let isEditMode = false, tempPhotoFile = null;
 
         function safe(str) { return !str ? '' : String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
 
@@ -339,9 +336,21 @@
         };
 
         function initFirestoreListeners() {
-            db.collection("settings").doc("sop_templates").onSnapshot(doc => { if (doc.exists) sopTemplates = doc.data(); });
-            db.collection("design_projects").onSnapshot(snap => { designProjects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); refreshUI(); });
-            db.collection("eng_projects").onSnapshot(snap => { engProjects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); refreshUI(); document.getElementById('loading-overlay').style.display = 'none'; });
+            db.collection("settings").doc("sop_templates").onSnapshot(doc => { 
+                if (doc.exists) sopTemplates = doc.data(); 
+            });
+            
+            db.collection("design_projects").onSnapshot(snap => { 
+                designProjects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
+                refreshUI(); 
+                document.getElementById('loading-overlay').style.display = 'none';
+            }, err => { document.getElementById('loading-overlay').style.display = 'none'; });
+
+            db.collection("eng_projects").onSnapshot(snap => { 
+                engProjects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
+                refreshUI(); 
+                document.getElementById('loading-overlay').style.display = 'none';
+            }, err => { document.getElementById('loading-overlay').style.display = 'none'; });
         }
 
         function refreshUI() {
@@ -355,7 +364,13 @@
             else if(activePage === 'sop-tpl-page') renderSopTplEditor();
         }
 
-        // --- SOP 範本管理 ---
+        function renderHomeCounts() {
+            document.getElementById('cnt-design').innerText = designProjects.filter(p=>p.status!=='completed').length;
+            document.getElementById('cnt-eng').innerText = engProjects.filter(p=>['active','suspended'].includes(p.status)).length;
+            document.getElementById('cnt-warranty').innerText = engProjects.filter(p=>p.status==='warranty').length;
+        }
+
+        // --- SOP 範本 ---
         function switchSopTpl(type) {
             currentSopTplType = type;
             document.querySelectorAll('.sop-tab').forEach(t => t.classList.remove('active'));
@@ -382,7 +397,7 @@
         function deleteSopTplItem(h,i) { sopTemplates[currentSopTplType][h].items.splice(i,1); saveSopTpl(); renderSopTplEditor(); }
 
         async function syncSopToExisting() {
-            if (!confirm("確定將範本同步至現有案件？這將保留已有進度，新增範本中有的項目。")) return;
+            if (!confirm("確定將範本同步至所有現有案件？標題相同的階段將保留進度。")) return;
             document.getElementById('loading-overlay').style.display = 'flex';
             const merge = (curr, tpl) => tpl.map(tH => {
                 const eH = (curr||[]).find(h => h.title === tH.title);
@@ -398,7 +413,7 @@
             alert("同步完成");
         }
 
-        // --- 案件內 SOP 執行與增減 ---
+        // --- 詳情頁 SOP ---
         function renderProjectSopExecution(p) {
             const container = document.getElementById('project-sop-execution-container'); container.innerHTML = '';
             (p.sopData || []).forEach((h, hIdx) => {
@@ -425,7 +440,7 @@
         function closeSyncSopModal() { document.getElementById('sync-sop-modal').style.display='none'; }
         async function importSopFromTemplate(mode) {
             const p = getActiveProject(); const tpl = sopTemplates[currentType] || [];
-            if(mode==='all'){ if(!confirm('這將覆蓋目前 SOP 進度，確定？')) return; p.sopData = JSON.parse(JSON.stringify(tpl)); }
+            if(mode==='all'){ if(!confirm('這將覆蓋目前進度，確定？')) return; p.sopData = JSON.parse(JSON.stringify(tpl)); }
             else {
                 const checks = document.querySelectorAll('.sync-check:checked');
                 if(!checks.length) return alert('未勾選項目');
@@ -440,29 +455,54 @@
             await updateActiveSop(p.sopData); renderProjectSopExecution(p); closeSyncSopModal();
         }
 
-        async function toggleSopItem(h,i) {
-            const p = getActiveProject(); p.sopData[h].items[i].done = !p.sopData[h].items[i].done;
-            if(p.sopData[h].items[i].done && !p.sopData[h].items[i].date) p.sopData[h].items[i].date = new Date().toISOString().split('T')[0];
-            await updateActiveSop(p.sopData); renderProjectSopExecution(p);
-        }
-        async function updateSopDate(h,i,v) { const p = getActiveProject(); p.sopData[h].items[i].date = v; await updateActiveSop(p.sopData); }
-        async function updateLocalSopItem(h,i,v) { const p = getActiveProject(); p.sopData[h].items[i].text = v; await updateActiveSop(p.sopData); }
-        async function addLocalSopItem(h) { const p = getActiveProject(); p.sopData[h].items.push({text:'新項目',done:false,date:''}); await updateActiveSop(p.sopData); renderProjectSopExecution(p); }
-        async function deleteLocalSopItem(h,i) { if(confirm('刪除該項目？')){ const p = getActiveProject(); p.sopData[h].items.splice(i,1); await updateActiveSop(p.sopData); renderProjectSopExecution(p); }}
-        async function addLocalSopStage() { const p = getActiveProject(); if(!p.sopData) p.sopData = []; p.sopData.push({title:'新階段', items:[]}); await updateActiveSop(p.sopData); renderProjectSopExecution(p); }
-        async function deleteLocalSopStage(h) { if(confirm('刪除整個階段？')){ const p = getActiveProject(); p.sopData.splice(h,1); await updateActiveSop(p.sopData); renderProjectSopExecution(p); }}
+        // --- 核心恢復 ---
+        function navigateTo(id) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); document.getElementById('back-btn').style.display = (id==='home-page'?'none':'block'); refreshUI(); }
+        function goBack() { navigateTo('home-page'); }
+        function logout() { auth.signOut().then(() => location.reload()); }
+        function performLogin() { auth.signInWithEmailAndPassword(document.getElementById('login-email').value, document.getElementById('login-password').value).catch(err => alert(err.message)); }
 
-        // --- 核心功能輔助 ---
-        function getActiveProject() { return (currentType === 'design' ? designProjects : engProjects).find(x => x.id === currentId); }
-        async function updateActiveSop(data) { await db.collection(currentType === 'design' ? "design_projects" : "eng_projects").doc(currentId).update({ sopData: data }); }
-        async function updateField(k,v) { let val = v; if(['designPrice','engBasePrice','engVarPrice'].includes(k)) val = parseCurrency(v); await db.collection(currentType === 'design' ? "design_projects" : "eng_projects").doc(currentId).update({[k]: val}); }
-        async function updateStageField(sid, f, v) { let val = (f==='cost')?parseCurrency(v):v; await db.collection(currentType === 'design' ? "design_projects" : "eng_projects").doc(currentId).update({[`stages.${sid}.${f}`]: val}); }
-        function calculateProgress(p, type) { let active = 0, done = 0; const order = p.stageOrder || (type==='design'?DEFAULT_DESIGN_ORDER:DEFAULT_ENG_ORDER); order.forEach(sid => { const s = p.stages[sid]; if(s && s.enabled!==false){ active++; if(s.done) done++; } else if(!s && type==='design'){ active++; } }); return { activeCount: active||1, doneCount: done }; }
-        function formatNumber(n) { return !n ? '' : n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
-        function parseCurrency(s) { return parseInt(s.toString().replace(/,/g, '')) || 0; }
-        function toNum(el) { el.value = el.value.replace(/,/g, ''); }
-        function toCur(el) { el.value = formatNumber(el.value); }
-        function formatCurrency(input) { let v = input.value.replace(/,/g, ''); if(!v)return; input.value = v.replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+        function renderCalendar() {
+            const y = calDate.getFullYear(), m = calDate.getMonth();
+            document.getElementById('cal-month-year').innerText = `${y} / ${String(m+1).padStart(2,'0')}`;
+            const c = document.getElementById('calendar-days'); c.innerHTML = '';
+            for(let i=0; i<new Date(y,m,1).getDay(); i++) c.innerHTML += '<div></div>';
+            for(let d=1; d<=new Date(y,m+1,0).getDate(); d++){
+                const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                let hD = false, hE = false;
+                designProjects.forEach(p=>{ Object.values(p.stages||{}).forEach(s=>{ if(s.start&&s.end&&ds>=s.start&&ds<=s.end) hD=true; }); });
+                engProjects.forEach(p=>{ if(p.status!=='warranty') Object.values(p.stages||{}).forEach(s=>{ if(s.enabled!==false&&s.start&&s.end&&ds>=s.start&&ds<=s.end) hE=true; }); });
+                const div = document.createElement('div'); div.className = 'cal-date'; div.innerHTML = `<span>${d}</span><div class="cal-bar-container">${hD?'<div class="cal-bar bar-design"></div>':''}${hE?'<div class="cal-bar bar-eng"></div>':''}</div>`;
+                div.onclick = () => showEvents(ds, div); c.appendChild(div);
+            }
+        }
+        function showEvents(ds, el) {
+            document.querySelectorAll('.cal-date').forEach(e=>e.classList.remove('active')); el.classList.add('active');
+            const b = document.getElementById('calendar-events'); b.innerHTML = `<b>📅 ${ds}</b>`;
+            const addEv = (list, type) => list.forEach(p => {
+                Object.keys(p.stages||{}).forEach(sid => {
+                    const s = p.stages[sid];
+                    if(s.enabled!==false && s.start && s.end && ds>=s.start && ds<=s.end) {
+                        b.innerHTML += `<div class="event-item" onclick="openDetail('${type}','${p.id}')"><div class="dot" style="background:var(--${type==='design'?'blue':'yellow'})"></div>${p.name} - ${s.name||(type==='design'?STAGES_DESIGN_DEF[sid]:STAGES_ENG_DEF[sid])}</div>`;
+                    }
+                });
+            });
+            addEv(designProjects, 'design'); addEv(engProjects, 'engineering');
+        }
+
+        function renderList(type) {
+            const container = document.getElementById(type==='warranty'?'warranty-list-container':(type==='design'?'design-list-container':'engineering-list-container'));
+            container.innerHTML = '';
+            let list = type === 'design' ? designProjects : (type === 'engineering' ? engProjects.filter(p=>['active','suspended'].includes(p.status)) : engProjects.filter(p=>p.status==='warranty'));
+            list.forEach(p => {
+                const prog = calculateProgress(p, type==='design'?'design':'engineering');
+                const pct = prog.activeCount===0?0:Math.round((prog.doneCount/prog.activeCount)*100);
+                container.innerHTML += `<div class="project-card" onclick="openDetail('${type==='warranty'?'engineering':(type==='design'?'design':'engineering')}','${p.id}')">
+                    <div style="font-weight:bold;">${safe(p.name)} ${p.status==='suspended'?'<span class="tag tag-suspend">暫緩</span>':''}</div>
+                    <div style="font-size:0.85rem; color:#888;">${safe(p.client)}</div>
+                    <div class="progress-bg"><div class="progress-fill" style="width:${pct}%"></div></div>
+                </div>`;
+            });
+        }
 
         function openDetail(type, id) {
             currentType = type; currentId = id; isEditMode = false;
@@ -472,9 +512,6 @@
             document.getElementById('design-price-row').style.display = type==='design'?'block':'none';
             document.getElementById('engineering-price-row').style.display = type==='engineering'?'block':'none';
             document.getElementById('add-payment-btn').style.display = type==='engineering'?'block':'none';
-            document.getElementById('warranty-date-row').style.display = p.status==='warranty'?'block':'none';
-            if(p.warrantyDate) document.getElementById('d-warranty-date').value = p.warrantyDate;
-
             if(type==='design'){ document.getElementById('d-design-price').value = formatNumber(p.designPrice); document.getElementById('d-design-tax-toggle').checked = !!p.taxEnabled; calculateTotalDesign(p); }
             else { 
                 document.getElementById('d-eng-base').value = formatNumber(p.engBasePrice); document.getElementById('d-eng-var').value = formatNumber(p.engVarPrice); 
@@ -485,7 +522,7 @@
             navigateTo('project-detail-page');
         }
 
-        // 財務邏輯恢復
+        // 財務計算
         function calculateTotalDesign(p) { let pr = parseInt(p.designPrice)||0, tx = p.taxEnabled?Math.round(pr*0.05):0; document.getElementById('d-design-tax-val').innerText = '$'+formatNumber(tx); return pr+tx; }
         function calculateTotalEng(p) { let b = parseInt(p.engBasePrice)||0, v = parseInt(p.engVarPrice)||0, sum = b+v; let sp = p.supervisionEnabled?Math.round(sum*(p.supervisionRate||0.05)):0; let tx = p.taxEnabled?Math.round((sum+sp)*0.05):0; document.getElementById('d-eng-sup-val').innerText = '$'+formatNumber(sp); document.getElementById('d-eng-tax-val').innerText = '$'+formatNumber(tx); document.getElementById('d-eng-total').innerText = '$'+formatNumber(sum+sp+tx); return sum+sp+tx; }
         async function toggleDesignTax(e){ await updateField('taxEnabled', e); openDetail(currentType, currentId); }
@@ -500,19 +537,29 @@
                 const s = p.stages[sid] || {done:false, enabled:true};
                 if(!isEditMode && s.enabled === false) return;
                 const div = document.createElement('div'); div.className = `checklist-item ${s.done?'checked':''}`;
-                let h = `<div class="check-header">`;
-                if(isEditMode) h += `<label class="toggle-switch"><input type="checkbox" ${s.enabled!==false?'checked':''} onchange="toggleStageEnable('${sid}',this.checked)"><span class="slider"></span></label>`;
-                h += `<div style="flex:1; display:flex; align-items:center" onclick="if(!isEditMode)toggleDoneOptimistic('${sid}')"><div class="custom-checkbox"></div><b>${safe(s.name||(type==='design'?STAGES_DESIGN_DEF[sid]:STAGES_ENG_DEF[sid]))}</b></div></div>`;
+                let head = `<div class="check-header">`;
+                if(isEditMode) head += `<label class="toggle-switch"><input type="checkbox" ${s.enabled!==false?'checked':''} onchange="toggleStageEnable('${sid}',this.checked)"><span class="slider"></span></label>`;
+                head += `<div style="flex:1; display:flex; align-items:center" onclick="if(!isEditMode)toggleDoneOptimistic('${sid}')"><div class="custom-checkbox"></div><b>${safe(s.name||(type==='design'?STAGES_DESIGN_DEF[sid]:STAGES_ENG_DEF[sid]))}</b></div></div>`;
                 if(s.enabled!==false){
-                    let d = `<div class="stage-details">`;
-                    if(type!=='design') d += `<div class="input-row-flex"><input type="text" class="detail-input" style="padding:8px;" placeholder="廠商" value="${safe(s.vendor)}" onchange="updateStageField('${sid}','vendor',this.value)"><input type="text" class="detail-input" style="padding:8px; color:var(--orange);" placeholder="成本" value="${formatNumber(s.cost)}" onfocus="toNum(this)" onchange="toCur(this); updateStageField('${sid}','cost',this.value)"></div>`;
-                    d += `<div class="date-row"><div class="date-group"><input type="date" class="mini-date" value="${s.start}" onchange="updateStageField('${sid}','start',this.value)"></div><div class="date-group"><input type="date" class="mini-date" value="${s.end}" onchange="updateStageField('${sid}','end',this.value)"></div></div></div>`;
-                    div.innerHTML = h + d;
-                } else div.innerHTML = h;
+                    let details = `<div class="stage-details">`;
+                    if(type!=='design') details += `<div class="input-row-flex"><input type="text" class="detail-input" style="padding:8px;" placeholder="廠商" value="${safe(s.vendor)}" onchange="updateStageField('${sid}','vendor',this.value)"><input type="text" class="detail-input" style="padding:8px; color:var(--orange);" placeholder="成本" value="${formatNumber(s.cost)}" onfocus="toNum(this)" onchange="toCur(this); updateStageField('${sid}','cost',this.value)"></div>`;
+                    details += `<div class="date-row"><div class="date-group"><input type="date" class="mini-date" value="${s.start}" onchange="updateStageField('${sid}','start',this.value)"></div><div class="date-group"><input type="date" class="mini-date" value="${s.end}" onchange="updateStageField('${sid}','end',this.value)"></div></div></div>`;
+                    div.innerHTML = head + details;
+                } else div.innerHTML = head;
                 container.appendChild(div);
             });
             const prog = calculateProgress(p, type); document.getElementById('progress-display').innerText = Math.round((prog.doneCount/prog.activeCount)*100) + '%';
         }
+
+        // --- 核心輔助 ---
+        async function updateField(k,v) { let val = v; if(['designPrice','engBasePrice','engVarPrice'].includes(k)) val = parseCurrency(v); await db.collection(currentType==='design'?"design_projects":"eng_projects").doc(currentId).update({[k]: val}); }
+        async function updateStageField(sid, f, v) { let val = (f==='cost')?parseCurrency(v):v; await db.collection(currentType==='design'?"design_projects":"eng_projects").doc(currentId).update({[`stages.${sid}.${f}`]: val}); }
+        function calculateProgress(p, type) { let active = 0, done = 0; const order = p.stageOrder || (type==='design'?DEFAULT_DESIGN_ORDER:DEFAULT_ENG_ORDER); order.forEach(sid => { const s = p.stages[sid]; if(s && s.enabled!==false){ active++; if(s.done) done++; } else if(!s && type==='design'){ active++; } }); return { activeCount: active||1, doneCount: done }; }
+        function formatNumber(n) { return !n ? '' : n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+        function parseCurrency(s) { return parseInt(s.toString().replace(/,/g, '')) || 0; }
+        function toNum(el) { el.value = el.value.replace(/,/g, ''); }
+        function toCur(el) { el.value = formatNumber(el.value); }
+        function formatCurrency(input) { let v = input.value.replace(/,/g, ''); if(!v)return; input.value = v.replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
 
         function renderDetailPayments(p, type) {
             const container = document.getElementById('detail-payment-container'); container.innerHTML = '';
@@ -552,51 +599,6 @@
         async function toggleManualPay(pid){ const p = (currentPaymentTab==='design'?designProjects:engProjects).find(x=>x.id===pid); await db.collection(currentPaymentTab==='design'?"design_projects":"eng_projects").doc(pid).update({manualPaymentDone: !p.manualPaymentDone}); }
         function switchPaymentTab(t){ currentPaymentTab=t; document.getElementById('pay-tab-design').classList.toggle('active', t==='design'); document.getElementById('pay-tab-eng').classList.toggle('active', t==='engineering'); renderPaymentPage(); }
 
-        // 行事曆、日誌與提醒
-        function renderCalendar() {
-            const y = calDate.getFullYear(), m = calDate.getMonth();
-            document.getElementById('cal-month-year').innerText = `${y} / ${String(m+1).padStart(2,'0')}`;
-            const c = document.getElementById('calendar-days'); c.innerHTML = '';
-            for(let i=0; i<new Date(y,m,1).getDay(); i++) c.innerHTML += '<div></div>';
-            for(let d=1; d<=new Date(y,m+1,0).getDate(); d++){
-                const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                let hD = false, hE = false;
-                designProjects.forEach(p=>{ Object.values(p.stages||{}).forEach(s=>{ if(s.start&&s.end&&ds>=s.start&&ds<=s.end) hD=true; }); });
-                engProjects.forEach(p=>{ if(p.status!=='warranty') Object.values(p.stages||{}).forEach(s=>{ if(s.enabled!==false&&s.start&&s.end&&ds>=s.start&&ds<=s.end) hE=true; }); });
-                const bars = `<div class="cal-bar-container">${hD?'<div class="cal-bar bar-design"></div>':''}${hE?'<div class="cal-bar bar-eng"></div>':''}</div>`;
-                const div = document.createElement('div'); div.className = 'cal-date'; div.innerHTML = `<span>${d}</span>${bars}`;
-                div.onclick = () => showEvents(ds, div); c.appendChild(div);
-            }
-        }
-        function showEvents(ds, el) {
-            document.querySelectorAll('.cal-date').forEach(e=>e.classList.remove('active')); el.classList.add('active');
-            const b = document.getElementById('calendar-events'); b.innerHTML = `<b>📅 ${ds}</b>`;
-            const addEv = (list, type) => list.forEach(p => {
-                Object.keys(p.stages||{}).forEach(sid => {
-                    const s = p.stages[sid];
-                    if(s.enabled!==false && s.start && s.end && ds>=s.start && ds<=s.end) {
-                        b.innerHTML += `<div class="event-item" onclick="openDetail('${type}','${p.id}')"><div class="dot" style="background:var(--${type==='design'?'blue':'yellow'})"></div>${p.name} - ${s.name||(type==='design'?STAGES_DESIGN_DEF[sid]:STAGES_ENG_DEF[sid])}</div>`;
-                    }
-                });
-            });
-            addEv(designProjects, 'design'); addEv(engProjects, 'engineering');
-        }
-
-        function renderList(type) {
-            const container = document.getElementById(type==='warranty'?'warranty-list-container':(type==='design'?'design-list-container':'engineering-list-container'));
-            container.innerHTML = '';
-            let list = type === 'design' ? designProjects : (type === 'engineering' ? engProjects.filter(p=>['active','suspended'].includes(p.status)) : engProjects.filter(p=>p.status==='warranty'));
-            list.forEach(p => {
-                const prog = calculateProgress(p, type==='design'?'design':'engineering');
-                const pct = prog.activeCount===0?0:Math.round((prog.doneCount/prog.activeCount)*100);
-                container.innerHTML += `<div class="project-card" onclick="openDetail('${type==='warranty'?'engineering':(type==='design'?'design':'engineering')}','${p.id}')">
-                    <div style="font-weight:bold;">${safe(p.name)} ${p.status==='suspended'?'<span class="tag tag-suspend">暫緩</span>':''}</div>
-                    <div style="font-size:0.85rem; color:#888;">${safe(p.client)}</div>
-                    <div class="progress-bg"><div class="progress-fill" style="width:${pct}%"></div></div>
-                </div>`;
-            });
-        }
-
         function renderActionBar(type, status) {
             const b = document.getElementById('action-bar-container'); b.innerHTML = '';
             if(type==='design') b.innerHTML = `<button class="action-btn" style="background:var(--yellow);" onclick="updateStatus('tracking')">${status==='tracking'?'取消追蹤':'追蹤中'}</button><button class="action-btn" style="background:var(--red); color:white;" onclick="deleteProj()">刪除</button><button class="action-btn" style="background:var(--green);" onclick="convertToEng()">完成轉工程</button>`;
@@ -632,8 +634,6 @@
             chk(designProjects,'設'); chk(engProjects,'工');
             document.getElementById('alert-dashboard').style.display = h ? 'block' : 'none';
         }
-        function navigateTo(id) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); document.getElementById('back-btn').style.display = (id==='home-page'?'none':'block'); refreshUI(); }
-        function goBack() { navigateTo('home-page'); }
         function openAddModal(t){ addModeType=t; document.getElementById('add-modal').style.display='flex'; }
         function closeAddModal(){ document.getElementById('add-modal').style.display='none'; }
         async function createProject() {
@@ -650,14 +650,12 @@
         function toggleDoneOptimistic(sid){ const p = getActiveProject(); if(!p.stages[sid]) p.stages[sid]={done:false,enabled:true}; p.stages[sid].done = !p.stages[sid].done; updateStageField(sid,'done',p.stages[sid].done); renderStages(p, currentType); }
         async function addCustomStage() { const n = prompt("項目名稱:"); if(!n)return; const sid='cust_'+Date.now(); const p=getActiveProject(); if(!p.stages)p.stages={}; p.stages[sid]={name:n,done:false,enabled:true}; p.stageOrder.push(sid); await db.collection(currentType==='design'?"design_projects":"eng_projects").doc(currentId).update({[`stages.${sid}`]:p.stages[sid], stageOrder:p.stageOrder}); renderStages(p,currentType); }
 
-        // SOP 操作
         async function deleteLocalSopStage(hIdx) { if(confirm('刪除整個階段？')) { const p = getActiveProject(); p.sopData.splice(hIdx, 1); await updateActiveSop(p.sopData); renderProjectSopExecution(p); } }
         async function deleteLocalSopItem(hIdx, iIdx) { if(confirm('刪除項目？')) { const p = getActiveProject(); p.sopData[hIdx].items.splice(iIdx, 1); await updateActiveSop(p.sopData); renderProjectSopExecution(p); } }
         async function addLocalSopItem(hIdx) { const p = getActiveProject(); p.sopData[hIdx].items.push({text:'新項目', done:false, date:''}); await updateActiveSop(p.sopData); renderProjectSopExecution(p); }
         async function updateLocalSopItem(hIdx, iIdx, val) { const p = getActiveProject(); p.sopData[hIdx].items[iIdx].text = val; await updateActiveSop(p.sopData); }
         async function addLocalSopStage() { const p = getActiveProject(); if(!p.sopData) p.sopData = []; p.sopData.push({title:'新階段標題', items:[]}); await updateActiveSop(p.sopData); renderProjectSopExecution(p); }
         function handleTempPhoto(i){ if(i.files[0]){ tempPhotoFile=i.files[0]; const r=new FileReader(); r.onload=e=>{document.getElementById('new-log-preview').src=e.target.result; document.getElementById('new-log-preview').style.display='block';}; r.readAsDataURL(i.files[0]); }}
-        function logout() { auth.signOut().then(() => location.reload()); }
     </script>
 </body>
 </html>
