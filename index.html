@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>對錯空間 v26.0 (SOP Template & Auto-Creation)</title>
+    <title>對錯空間 v26.01 (SOP 整合版)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#202124">
@@ -26,70 +26,62 @@
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
         .page { display: none; } .page.active { display: block; }
         
-        /* Overlays */
+        /* UI Elements */
         #loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center; color:white; font-size:1.2rem; flex-direction: column; gap:10px; text-align: center; padding: 20px;}
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
         .login-box { background: var(--surface-color); padding: 30px; border-radius: 12px; width: 100%; max-width: 320px; text-align: center; border: 1px solid var(--divider); }
         .login-input { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.2); border: 1px solid var(--divider); color: var(--text-primary); border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
         .login-btn { width: 100%; padding: 12px; background: var(--blue); color: #202124; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; }
         
-        /* UI Elements */
+        /* Calendar */
         .calendar-section { background: var(--surface-color); border-radius: 12px; padding: 15px; margin-bottom: 20px; }
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
         .cal-day-name { color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 5px; }
         .cal-date { border-radius: 6px; font-size: 0.85rem; cursor: pointer; position: relative; height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 4px; background: rgba(255,255,255,0.02); }
         .cal-date.active { background-color: rgba(138, 180, 248, 0.2); color: var(--blue); font-weight: bold; border: 1px solid var(--blue); }
-        .event-list-box { margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--divider); font-size: 0.9rem; color: var(--text-secondary); min-height: 20px;}
-        .event-item { margin-bottom: 8px; display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 6px; cursor: pointer; background: rgba(255,255,255,0.03); }
-        .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .cal-bar-container { width: 100%; display: flex; flex-direction: column; gap: 2px; margin-top: 2px; align-items: center; }
+        .cal-bar { width: 85%; height: 3px; border-radius: 2px; }
+        .bar-design { background-color: var(--blue); } .bar-eng { background-color: var(--yellow); }
 
-        .alert-section { background-color: rgba(242, 139, 130, 0.15); border: 1px solid var(--red); border-radius: 12px; padding: 15px; margin-bottom: 20px; display: none; }
-        .alert-item { color: var(--red); font-size: 0.9rem; margin-bottom: 8px; cursor: pointer; padding-bottom: 5px; border-bottom: 1px solid rgba(242, 139, 130, 0.3); }
-        .project-card { background: var(--surface-color); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid var(--divider); position: relative; overflow: hidden; cursor: pointer; z-index: 1; }
-        .progress-bg { position: absolute; bottom: 0; left: 0; height: 4px; width: 100%; background: #444; z-index: 0; }
+        /* Project Card */
+        .project-card { background: var(--surface-color); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid var(--divider); position: relative; overflow: hidden; cursor: pointer; }
+        .progress-bg { position: absolute; bottom: 0; left: 0; height: 4px; width: 100%; background: #444; }
         .progress-fill { height: 100%; transition: width 0.3s; background: linear-gradient(to right, var(--green), var(--yellow)); }
-        .tag { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
-        .tag-track { background: var(--yellow); color: #333; } .tag-done { background: var(--green); color: #333; } .tag-suspend { background: var(--red); color: white; } .tag-warranty { background: var(--purple); color: white; }
-        .card-progress-text { font-size: 0.85rem; color: var(--teal); margin-top: 5px; display: flex; align-items: center; gap: 5px; } .card-progress-text::before { content: '►'; font-size: 0.7rem; }
-
-        .detail-section { background: var(--surface-color); padding: 20px; border-radius: 12px; margin-bottom: 15px; }
-        .detail-title { font-size: 0.9rem; font-weight: bold; color: var(--blue); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center;}
-        .input-row { margin-bottom: 15px; } .input-label { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px; display: block; }
-        .detail-input { width: 100%; padding: 12px; box-sizing: border-box; background: #202124; border: 1px solid var(--divider); border-radius: 8px; font-size: 1rem; color: var(--text-primary); }
-
-        .custom-checkbox { width: 22px; height: 22px; border: 2px solid var(--text-secondary); border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; transition: background 0.1s; cursor: pointer; color: transparent; font-weight: bold; }
-        .custom-checkbox.checked { background: var(--green); border-color: var(--green) !important; color: #202124; }
-        .custom-checkbox.checked::after { content: '✓'; }
-
-        .mini-date, .pay-date-input { width: 100%; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); padding: 6px 4px; border-radius: 6px; font-size: 0.8rem; color-scheme: dark; white-space: nowrap; overflow: hidden; }
 
         /* SOP Styles */
-        .sop-section-header { background: #3c4043; padding: 10px 15px; border-radius: 8px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .sop-section-header::after { content: '▼'; font-size: 0.7rem; transition: transform 0.3s; }
-        .sop-section-header.collapsed::after { transform: rotate(-90deg); }
-        .sop-section-content { padding: 10px 0 10px 10px; border-left: 2px dashed var(--divider); margin-left: 10px; }
-        .sop-section-content.hidden { display: none; }
-        .sop-item-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-        .sop-item-name { flex: 1; font-size: 0.95rem; }
-        .sop-item-date { width: 120px; flex-shrink: 0; }
-        .btn-sop-add { background: none; border: 1px dashed var(--blue); color: var(--blue); width: 100%; padding: 8px; border-radius: 8px; margin-top: 10px; cursor: pointer; font-size: 0.85rem; }
-        .btn-sop-del { color: var(--red); background: none; border: none; cursor: pointer; font-size: 1.1rem; }
-        .sop-template-title-input { background: transparent; border: none; border-bottom: 1px solid var(--divider); color: var(--blue); font-weight: bold; width: 80%; font-size: 1rem; }
-        .sop-template-title-input:focus { outline: none; border-bottom-color: var(--blue); }
+        .sop-section { margin-top: 20px; border-top: 2px solid var(--divider); padding-top: 20px; }
+        .sop-header { background: #3d3e42; padding: 10px 15px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--orange); }
+        .sop-header.collapsed + .sop-content { display: none; }
+        .sop-header::after { content: '▼'; font-size: 0.7rem; }
+        .sop-header.collapsed::after { content: '▶'; }
+        .sop-item-row { display: flex; align-items: center; gap: 10px; padding: 10px 5px; border-bottom: 1px solid var(--divider); }
+        .sop-item-text { flex: 1; font-size: 0.95rem; }
+        .sop-item-date { width: 110px; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); border-radius: 4px; padding: 4px; font-size: 0.8rem; }
+        
+        /* Tabs */
+        .sop-tabs { display: flex; margin-bottom: 20px; gap: 10px; }
+        .sop-tab { flex: 1; padding: 10px; background: var(--surface-color); border: 1px solid var(--divider); border-radius: 8px; color: var(--text-secondary); cursor: pointer; text-align: center; }
+        .sop-tab.active { background: var(--orange); color: #202124; font-weight: bold; border-color: var(--orange); }
 
-        /* Original Components */
-        .payment-row { display: flex; flex-direction: row; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-top: 10px; }
-        .pay-col-check { flex: 0 0 30px; display: flex; justify-content: center; }
-        .pay-col-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-        .pay-col-info { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-        .pay-accordion-header { background: var(--surface-color); padding: 12px 15px; margin-top: 15px; border-radius: 8px; border-left: 5px solid var(--teal); display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; color: var(--teal); }
-        .pay-accordion-content.hidden { display: none; }
-        .menu-btn { display: block; width: 100%; padding: 20px; margin-bottom: 15px; background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--divider); border-radius: 12px; font-size: 1.1rem; text-align: left; cursor: pointer; position: relative; } 
-        .menu-btn .count-badge { float: right; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; font-size: 0.9rem; color: var(--text-secondary); }
+        /* Inputs & Buttons */
+        .detail-section { background: var(--surface-color); padding: 20px; border-radius: 12px; margin-bottom: 15px; }
+        .detail-title { font-size: 0.9rem; font-weight: bold; color: var(--blue); margin-bottom: 15px; display: flex; justify-content: space-between; }
+        .detail-input { width: 100%; padding: 12px; box-sizing: border-box; background: #202124; border: 1px solid var(--divider); border-radius: 8px; color: var(--text-primary); margin-bottom: 10px; }
+        .btn-mini { padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; border: 1px solid var(--divider); background: none; color: var(--text-secondary); cursor: pointer; }
+        .btn-add { background: var(--orange); color: #202124; border: none; padding: 10px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 10px; }
+        .menu-btn { display: block; width: 100%; padding: 20px; margin-bottom: 15px; background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--divider); border-radius: 12px; font-size: 1.1rem; text-align: left; cursor: pointer; }
+
+        /* Custom Checkbox */
+        .custom-checkbox { width: 20px; height: 20px; border: 2px solid var(--text-secondary); border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+        .custom-checkbox.checked { background: var(--green); border-color: var(--green); color: #202124; }
+        .custom-checkbox.checked::after { content: '✓'; font-weight: bold; }
+
         .fab { position: fixed; bottom: 30px; right: 30px; width: 56px; height: 56px; background: var(--blue); color: #202124; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 200; cursor: pointer; }
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); align-items: center; justify-content: center; } .modal-content { background: var(--surface-color); padding: 25px; border-radius: 15px; width: 85%; max-width: 350px; }
-        .btn-manual-move { background: rgba(255,255,255,0.1); border: 1px solid var(--divider); color: var(--text-secondary); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
+        .action-bar { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; } 
+        .action-btn { flex: 1; padding: 15px; border: none; border-radius: 12px; font-size: 0.95rem; cursor: pointer; color: #202124; font-weight: bold; }
+        .btn-done { background: var(--green); } .btn-del { background: rgba(242,139,130,0.2); color: var(--red); }
     </style>
 </head>
 <body>
@@ -98,96 +90,81 @@
 
     <div id="login-overlay">
         <div class="login-box">
-            <h2 style="margin-top:0; color:var(--blue);">對錯空間實驗室</h2>
+            <h2 style="color:var(--blue);">對錯空間實驗室</h2>
             <input type="email" id="login-email" class="login-input" placeholder="電子信箱">
             <input type="password" id="login-password" class="login-input" placeholder="密碼">
             <button class="login-btn" onclick="performLogin()">登入</button>
-            <div id="login-error" style="color:var(--red); font-size:0.9rem; margin-top:10px;"></div>
         </div>
     </div>
 
     <header>
         <button id="back-btn" class="header-back" onclick="goBack()">‹ 返回</button>
         <h1 id="page-title">對錯空間實驗室</h1>
-        <button onclick="logout()" style="position:absolute; right:15px; background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.9rem;">登出</button>
+        <button onclick="logout()" style="position:absolute; right:15px; background:none; border:none; color:var(--text-secondary); cursor:pointer;">登出</button>
     </header>
 
     <div id="home-page" class="page active container">
-        <div id="alert-dashboard" class="alert-section">
-            <div style="font-weight:bold; color:var(--red); margin-bottom:10px;">⚠️ 重要提醒</div>
-            <div id="alert-list"></div>
+        <div class="calendar-section">
+            <div class="calendar-header">
+                <button onclick="changeMonth(-1)" style="background:none; border:none; color:var(--text-primary); font-size:1.5rem">‹</button>
+                <span id="cal-month-year"></span>
+                <button onclick="changeMonth(1)" style="background:none; border:none; color:var(--text-primary); font-size:1.5rem">›</button>
+            </div>
+            <div class="calendar-grid"><div class="cal-day-name">日</div><div class="cal-day-name">一</div><div class="cal-day-name">二</div><div class="cal-day-name">三</div><div class="cal-day-name">四</div><div class="cal-day-name">五</div><div class="cal-day-name">六</div></div>
+            <div id="calendar-days" class="calendar-grid"></div>
         </div>
-        <!-- Calendar 略 -->
-        <button class="menu-btn" onclick="navigateTo('design-list-page')">設計案件 <span id="cnt-design" class="count-badge">0</span></button>
-        <button class="menu-btn" onclick="navigateTo('engineering-list-page')">工程案件 <span id="cnt-eng" class="count-badge">0</span></button>
-        <button class="menu-btn" onclick="navigateTo('warranty-list-page')" style="border-left: 5px solid var(--purple);">完工保固 <span id="cnt-warranty" class="count-badge">0</span></button>
-        <button class="menu-btn" onclick="navigateTo('payment-page')" style="border-left: 5px solid var(--teal);">收款進度</button>
-        <button class="menu-btn" onclick="navigateTo('sop-main-page')" style="border-left: 5px solid var(--blue);">SOP 管理系統</button>
+        <button class="menu-btn" onclick="navigateTo('design-list-page')">設計案件</button>
+        <button class="menu-btn" onclick="navigateTo('engineering-list-page')">工程案件</button>
+        <button class="menu-btn" onclick="navigateTo('sop-template-page')" style="border-left: 5px solid var(--orange);">SOP 範本管理</button>
     </div>
 
-    <!-- SOP 主頁面 -->
-    <div id="sop-main-page" class="page container">
-        <div class="detail-title">範本設定</div>
-        <button class="menu-btn" onclick="openSOPTemplate('design')">🛠️ 編輯設計案件 SOP 範本</button>
-        <button class="menu-btn" onclick="openSOPTemplate('engineering')">🛠️ 編輯工程案件 SOP 範本</button>
-        <div class="detail-title">案件 SOP 執行列表</div>
-        <div class="pay-accordion-header" onclick="toggleElement('sop-design-list')">設計案件 SOP</div>
-        <div id="sop-design-list" class="pay-accordion-content"></div>
-        <div class="pay-accordion-header" onclick="toggleElement('sop-eng-list')">工程案件 SOP</div>
-        <div id="sop-eng-list" class="pay-accordion-content"></div>
-    </div>
-
-    <!-- SOP 範本編輯頁面 -->
+    <!-- SOP 範本管理頁面 -->
     <div id="sop-template-page" class="page container">
-        <div id="sop-template-editor-container"></div>
-        <button class="btn-sop-add" onclick="addSOPTemplateSection()">+ 新增階段標題</button>
-        <div style="margin-top:20px; display:flex; gap:10px;">
-            <button class="login-btn" onclick="saveSOPTemplate()">儲存範本</button>
+        <div class="sop-tabs">
+            <div class="sop-tab active" id="tab-tpl-design" onclick="switchSopTpl('design')">設計 SOP</div>
+            <div class="sop-tab" id="tab-tpl-eng" onclick="switchSopTpl('engineering')">工程 SOP</div>
+        </div>
+        <div id="sop-template-editor" class="detail-section">
+            <!-- 範本內容動態渲染 -->
+        </div>
+        <button class="btn-add" onclick="addSopTplStage()">+ 新增階段標題</button>
+        <div style="margin-top: 30px;">
+            <button class="btn-mini" style="width:100%; padding:15px; border-color:var(--red); color:var(--red);" onclick="syncSopToExistingProjects()">將此範本套用至所有現有案件 (慎用)</button>
         </div>
     </div>
 
-    <!-- SOP 案件詳情頁面 -->
-    <div id="sop-instance-page" class="page container">
-        <div class="detail-section">
-            <div id="sop-instance-info-header" style="margin-bottom:15px; border-bottom:1px solid var(--divider); padding-bottom:10px;"></div>
-            <div id="sop-instance-body"></div>
-        </div>
-    </div>
-
-    <!-- 其他原本的 List 頁面 -->
     <div id="design-list-page" class="page container"><div id="design-list-container"></div><div class="fab" onclick="openAddModal('design')">+</div></div>
     <div id="engineering-list-page" class="page container"><div id="engineering-list-container"></div><div class="fab" onclick="openAddModal('engineering')">+</div></div>
-    <div id="warranty-list-page" class="page container"><div id="warranty-list-container"></div></div>
-    <div id="payment-page" class="page container">
-        <div class="payment-tabs"><button class="tab-btn active" id="tab-design" onclick="switchPaymentTab('design')">設計合約</button><button class="tab-btn" id="tab-engineering" onclick="switchPaymentTab('engineering')">工程合約</button></div>
-        <div id="payment-content-container"></div>
-    </div>
 
     <div id="project-detail-page" class="page container">
         <div class="detail-section">
             <div class="detail-title">基本資料</div>
-            <div class="input-row"><label class="input-label">案件名稱</label><input type="text" class="detail-input" id="d-name" onchange="updateField('name', this.value)"></div>
-            <div class="input-row" style="display:flex; gap:10px;">
-                <div style="flex:1"><label class="input-label">業主姓名</label><input type="text" class="detail-input" id="d-client" onchange="updateField('client', this.value)"></div>
-                <div style="flex:1"><label class="input-label">聯絡電話</label><input type="text" class="detail-input" id="d-phone" onchange="updateField('phone', this.value)"></div>
-            </div>
-            <div class="input-row"><label class="input-label">案件地址</label><input type="text" class="detail-input" id="d-address" onchange="updateField('address', this.value)"></div>
+            <input type="text" class="detail-input" id="d-name" placeholder="案件名稱" onchange="updateField('name', this.value)">
+            <input type="text" class="detail-input" id="d-client" placeholder="業主姓名" onchange="updateField('client', this.value)">
+            <input type="text" class="detail-input" id="d-address" placeholder="地址" onchange="updateField('address', this.value)">
         </div>
-        <div id="action-bar-container" style="display:flex; gap:10px; margin-top:20px;"></div>
+
+        <div class="detail-section sop-section">
+            <div class="detail-title" style="color:var(--orange)">SOP 執行清單</div>
+            <div id="project-sop-container"></div>
+        </div>
+
+        <div id="action-bar-container" class="action-bar"></div>
     </div>
 
     <div id="add-modal" class="modal">
         <div class="modal-content">
             <h3 id="modal-title">新增案件</h3>
             <input type="text" class="detail-input" id="new-name" placeholder="案件名稱">
-            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                <button onclick="closeAddModal()" style="background:none; border:1px solid var(--divider); color:white; padding:8px 15px; border-radius:20px;">取消</button>
-                <button class="login-btn" onclick="createProject()" style="width:auto; padding:8px 25px;">建立</button>
+            <div style="display:flex; gap:10px;">
+                <button class="action-btn" style="background:#555; color:white;" onclick="closeAddModal()">取消</button>
+                <button class="action-btn btn-done" onclick="createProject()">建立</button>
             </div>
         </div>
     </div>
 
     <script>
+        // Firebase Config (保持原樣)
         const firebaseConfig = {
             apiKey: "AIzaSyDEKjRwWI6vkCg-dIsv1I4BamcC34UaJTU",
             authDomain: "te-interiorlab.firebaseapp.com",
@@ -202,238 +179,308 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        let designProjects = [], engProjects = [], sopTemplates = {}, currentSOPType = '', activeSOPInstance = null;
-        let currentType = '', currentId = '', calDate = new Date(), addModeType = '';
+        let designProjects = [], engProjects = [], sopTemplates = { design: [], engineering: [] };
+        let currentType = '', currentId = '', calDate = new Date(), addModeType = '', currentSopTplType = 'design';
 
-        function safe(str) { return str ? String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : ''; }
-        function formatNumber(num) { return num ? num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : ''; }
-
+        // --- 初始化 ---
         window.onload = () => {
+            document.getElementById('loading-overlay').style.display = 'flex';
             auth.onAuthStateChanged(user => {
                 if (user) {
                     document.getElementById('login-overlay').style.display = 'none';
-                    initFirestoreListeners();
+                    initData();
                 } else {
+                    document.getElementById('loading-overlay').style.display = 'none';
                     document.getElementById('login-overlay').style.display = 'flex';
                 }
             });
         };
 
+        function initData() {
+            // 讀取 SOP 範本
+            db.collection("sop_templates").doc("master").onSnapshot(doc => {
+                if (doc.exists) sopTemplates = doc.data();
+                if (document.getElementById('sop-template-page').classList.contains('active')) renderSopTemplateEditor();
+            });
+
+            // 讀取案件
+            db.collection("design_projects").onSnapshot(snap => {
+                designProjects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                refreshUI();
+            });
+            db.collection("eng_projects").onSnapshot(snap => {
+                engProjects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                refreshUI();
+                document.getElementById('loading-overlay').style.display = 'none';
+            });
+        }
+
+        // --- SOP 範本邏輯 ---
+        function switchSopTpl(type) {
+            currentSopTplType = type;
+            document.getElementById('tab-tpl-design').classList.toggle('active', type==='design');
+            document.getElementById('tab-tpl-eng').classList.toggle('active', type==='engineering');
+            renderSopTemplateEditor();
+        }
+
+        function renderSopTemplateEditor() {
+            const container = document.getElementById('sop-template-editor');
+            container.innerHTML = '';
+            const tpl = sopTemplates[currentSopTplType] || [];
+
+            tpl.forEach((stage, sIdx) => {
+                const stageDiv = document.createElement('div');
+                stageDiv.style.marginBottom = '20px';
+                stageDiv.innerHTML = `
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <input type="text" class="detail-input" style="margin:0; font-weight:bold; color:var(--orange);" value="${stage.title}" onchange="editSopTplStage(${sIdx}, this.value)">
+                        <button class="btn-mini" style="color:var(--red)" onclick="deleteSopTplStage(${sIdx})">刪除</button>
+                    </div>
+                    <div style="padding-left:20px;" id="tpl-stage-items-${sIdx}"></div>
+                    <button class="btn-mini" style="margin:10px 20px;" onclick="addSopTplItem(${sIdx})">+ 新增項目</button>
+                `;
+                container.appendChild(stageDiv);
+
+                const itemContainer = stageDiv.querySelector(`#tpl-stage-items-${sIdx}`);
+                stage.items.forEach((item, iIdx) => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'sop-item-row';
+                    itemDiv.innerHTML = `
+                        <input type="text" class="detail-input" style="margin:0; flex:1; padding:8px;" value="${item.text}" onchange="editSopTplItem(${sIdx}, ${iIdx}, this.value)">
+                        <button class="btn-mini" onclick="deleteSopTplItem(${sIdx}, ${iIdx})">✕</button>
+                    `;
+                    itemContainer.appendChild(itemDiv);
+                });
+            });
+        }
+
+        async function saveSopTemplates() {
+            await db.collection("sop_templates").doc("master").set(sopTemplates);
+        }
+
+        function addSopTplStage() {
+            sopTemplates[currentSopTplType].push({ title: "新階段", items: [] });
+            saveSopTemplates();
+        }
+
+        function editSopTplStage(sIdx, val) {
+            sopTemplates[currentSopTplType][sIdx].title = val;
+            saveSopTemplates();
+        }
+
+        function deleteSopTplStage(sIdx) {
+            if(confirm("確定刪除此階段及其所有項目？")) {
+                sopTemplates[currentSopTplType].splice(sIdx, 1);
+                saveSopTemplates();
+            }
+        }
+
+        function addSopTplItem(sIdx) {
+            sopTemplates[currentSopTplType][sIdx].items.push({ text: "新項目", done: false, date: "" });
+            saveSopTemplates();
+        }
+
+        function editSopTplItem(sIdx, iIdx, val) {
+            sopTemplates[currentSopTplType][sIdx].items[iIdx].text = val;
+            saveSopTemplates();
+        }
+
+        function deleteSopTplItem(sIdx, iIdx) {
+            sopTemplates[currentSopTplType][sIdx].items.splice(iIdx, 1);
+            saveSopTemplates();
+        }
+
+        // --- 案件 SOP 執行邏輯 ---
+        function renderProjectSop(p) {
+            const container = document.getElementById('project-sop-container');
+            container.innerHTML = '';
+            const sopData = p.sopData || [];
+
+            if (sopData.length === 0) {
+                container.innerHTML = '<button class="btn-add" onclick="applySopTemplateToSingle()">載入 SOP 範本</button>';
+                return;
+            }
+
+            sopData.forEach((stage, sIdx) => {
+                const header = document.createElement('div');
+                header.className = 'sop-header';
+                header.innerText = stage.title;
+                header.onclick = () => header.classList.toggle('collapsed');
+                
+                const content = document.createElement('div');
+                content.className = 'sop-content';
+                
+                stage.items.forEach((item, iIdx) => {
+                    const row = document.createElement('div');
+                    row.className = 'sop-item-row';
+                    row.innerHTML = `
+                        <div class="custom-checkbox ${item.done ? 'checked' : ''}" onclick="toggleSopItem(${sIdx}, ${iIdx})"></div>
+                        <div class="sop-item-text">${item.text}</div>
+                        <input type="date" class="sop-item-date" value="${item.date || ''}" onchange="setSopItemDate(${sIdx}, ${iIdx}, this.value)">
+                    `;
+                    content.appendChild(row);
+                });
+
+                container.appendChild(header);
+                container.appendChild(content);
+            });
+        }
+
+        async function toggleSopItem(sIdx, iIdx) {
+            const list = currentType === 'design' ? designProjects : engProjects;
+            const p = list.find(x => x.id === currentId);
+            p.sopData[sIdx].items[iIdx].done = !p.sopData[sIdx].items[iIdx].done;
+            if (p.sopData[sIdx].items[iIdx].done && !p.sopData[sIdx].items[iIdx].date) {
+                p.sopData[sIdx].items[iIdx].date = new Date().toISOString().split('T')[0];
+            }
+            await updateField('sopData', p.sopData);
+            renderProjectSop(p);
+        }
+
+        async function setSopItemDate(sIdx, iIdx, val) {
+            const list = currentType === 'design' ? designProjects : engProjects;
+            const p = list.find(x => x.id === currentId);
+            p.sopData[sIdx].items[iIdx].date = val;
+            await updateField('sopData', p.sopData);
+        }
+
+        async function applySopTemplateToSingle() {
+            const tpl = JSON.parse(JSON.stringify(sopTemplates[currentType])); // 深拷貝
+            await updateField('sopData', tpl);
+            const list = currentType === 'design' ? designProjects : engProjects;
+            const p = list.find(x => x.id === currentId);
+            p.sopData = tpl;
+            renderProjectSop(p);
+        }
+
+        async function syncSopToExistingProjects() {
+            if(!confirm("這將會覆蓋所有「已有 SOP 紀錄」的案件，確定執行？")) return;
+            document.getElementById('loading-overlay').style.display = 'flex';
+            
+            const dSet = designProjects.map(p => db.collection("design_projects").doc(p.id).update({ sopData: sopTemplates.design }));
+            const eSet = engProjects.map(p => db.collection("eng_projects").doc(p.id).update({ sopData: sopTemplates.engineering }));
+            
+            await Promise.all([...dSet, ...eSet]);
+            alert("同步完成");
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+
+        // --- 基礎案件功能 (與舊版銜接) ---
+        function navigateTo(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            const back = document.getElementById('back-btn');
+            if (pageId === 'home-page') {
+                back.style.display = 'none';
+                document.getElementById('page-title').innerText = '對錯空間實驗室';
+                renderCalendar();
+            } else {
+                back.style.display = 'block';
+                if (pageId === 'design-list-page') renderList('design');
+                if (pageId === 'engineering-list-page') renderList('engineering');
+                if (pageId === 'sop-template-page') renderSopTemplateEditor();
+            }
+        }
+
+        function goBack() { navigateTo('home-page'); }
+
+        async function createProject() {
+            const name = document.getElementById('new-name').value;
+            if (!name) return alert("請輸入名稱");
+            const collection = addModeType === 'design' ? "design_projects" : "eng_projects";
+            
+            // 自動帶入 SOP 範本
+            const initialSop = JSON.parse(JSON.stringify(sopTemplates[addModeType] || []));
+
+            const newObj = {
+                name: name,
+                sopData: initialSop,
+                status: 'active',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            const docRef = await db.collection(collection).add(newObj);
+            closeAddModal();
+            openDetail(addModeType, docRef.id);
+        }
+
+        function openDetail(type, id) {
+            currentType = type; currentId = id;
+            const list = type === 'design' ? designProjects : engProjects;
+            const p = list.find(x => x.id === id);
+            
+            document.getElementById('d-name').value = p.name || '';
+            document.getElementById('d-client').value = p.client || '';
+            document.getElementById('d-address').value = p.address || '';
+            
+            renderProjectSop(p);
+            renderActionBar(type);
+            navigateTo('project-detail-page');
+        }
+
+        async function updateField(key, val) {
+            const col = currentType === 'design' ? "design_projects" : "eng_projects";
+            await db.collection(col).doc(currentId).update({ [key]: val });
+        }
+
+        function renderList(type) {
+            const container = document.getElementById(type + '-list-container');
+            container.innerHTML = '';
+            const list = type === 'design' ? designProjects : engProjects;
+            
+            list.forEach(p => {
+                container.innerHTML += `
+                    <div class="project-card" onclick="openDetail('${type}','${p.id}')">
+                        <div style="font-weight:bold;">${p.name}</div>
+                        <div style="color:var(--text-secondary); font-size:0.8rem;">${p.client || '未填寫業主'}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderActionBar(type) {
+            const b = document.getElementById('action-bar-container');
+            b.innerHTML = `<button class="action-btn btn-del" onclick="deleteCurrentProject()">刪除案件</button>
+                           <button class="action-btn btn-done" onclick="goBack()">返回列表</button>`;
+        }
+
+        async function deleteCurrentProject() {
+            if(!confirm("確定刪除？")) return;
+            const col = currentType === 'design' ? "design_projects" : "eng_projects";
+            await db.collection(col).doc(currentId).delete();
+            goBack();
+        }
+
+        // --- 登入與輔助功能 ---
         function performLogin() {
             const e = document.getElementById('login-email').value;
             const p = document.getElementById('login-password').value;
             auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
         }
-        function logout() { auth.signOut().then(() => location.reload()); }
 
-        function initFirestoreListeners() {
-            db.collection("design_projects").onSnapshot(snap => { designProjects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); refreshUI(); });
-            db.collection("eng_projects").onSnapshot(snap => { engProjects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); refreshUI(); });
-            db.collection("sop_templates").onSnapshot(snap => { snap.docs.forEach(doc => { sopTemplates[doc.id] = doc.data(); }); });
+        function logout() { auth.signOut(); }
+
+        function openAddModal(t) { 
+            addModeType = t; 
+            document.getElementById('modal-title').innerText = t === 'design' ? '新增設計案' : '新增工程案';
+            document.getElementById('add-modal').style.display = 'flex'; 
         }
+        function closeAddModal() { document.getElementById('add-modal').style.display = 'none'; }
 
+        function renderCalendar() {
+            const y = calDate.getFullYear(), m = calDate.getMonth();
+            document.getElementById('cal-month-year').innerText = `${y}年 ${m + 1}月`;
+            const c = document.getElementById('calendar-days'); c.innerHTML = '';
+            for (let i = 0; i < new Date(y, m, 1).getDay(); i++) c.innerHTML += '<div></div>';
+            for (let d = 1; d <= new Date(y, m + 1, 0).getDate(); d++) {
+                c.innerHTML += `<div class="cal-date"><span>${d}</span></div>`;
+            }
+        }
+        function changeMonth(n) { calDate.setMonth(calDate.getMonth() + n); renderCalendar(); }
         function refreshUI() {
-            document.getElementById('cnt-design').innerText = designProjects.filter(p=>p.status!=='completed').length;
-            document.getElementById('cnt-eng').innerText = engProjects.filter(p=>p.status==='active'||p.status==='suspended').length;
-            document.getElementById('cnt-warranty').innerText = engProjects.filter(p=>p.status==='warranty').length;
-            if(document.getElementById('sop-main-page').classList.contains('active')) renderSOPMain();
+            if (document.getElementById('design-list-page').classList.contains('active')) renderList('design');
+            if (document.getElementById('engineering-list-page').classList.contains('active')) renderList('engineering');
         }
-
-        function navigateTo(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            document.getElementById('back-btn').style.display = (pageId === 'home-page' ? 'none' : 'block');
-            if (pageId === 'sop-main-page') renderSOPMain();
-        }
-
-        function goBack() {
-            const activePage = document.querySelector('.page.active').id;
-            if (activePage === 'sop-template-page' || activePage === 'sop-instance-page') navigateTo('sop-main-page');
-            else navigateTo('home-page');
-        }
-
-        function toggleElement(id) { document.getElementById(id).classList.toggle('hidden'); }
-
-        // --- SOP 範本編輯邏輯 ---
-        function openSOPTemplate(type) {
-            currentSOPType = type;
-            const container = document.getElementById('sop-template-editor-container');
-            container.innerHTML = `<div class="detail-title">編輯 ${type==='design'?'設計':'工程'} SOP 範本</div>`;
-            
-            const temp = sopTemplates[type] || { sections: [] };
-            temp.sections.forEach((sec, sIdx) => {
-                const secDiv = document.createElement('div');
-                secDiv.className = 'detail-section';
-                secDiv.innerHTML = `
-                    <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <input type="text" class="sop-template-title-input" value="${safe(sec.title)}" onchange="updateSOPTempSection(${sIdx}, this.value)">
-                        <button class="btn-sop-del" onclick="removeSOPTempSection(${sIdx})">🗑️</button>
-                    </div>
-                    <div id="temp-tasks-${sIdx}"></div>
-                    <button class="btn-sop-add" onclick="addSOPTempTask(${sIdx})">+ 新增任務項目</button>
-                `;
-                sec.tasks.forEach((task, tIdx) => {
-                    const taskRow = document.createElement('div');
-                    taskRow.className = 'sop-item-row';
-                    taskRow.innerHTML = `
-                        <input type="text" class="detail-input" style="flex:1" value="${safe(task)}" onchange="updateSOPTempTask(${sIdx}, ${tIdx}, this.value)">
-                        <button class="btn-sop-del" onclick="removeSOPTempTask(${sIdx}, ${tIdx})">×</button>
-                    `;
-                    secDiv.querySelector(`#temp-tasks-${sIdx}`).appendChild(taskRow);
-                });
-                container.appendChild(secDiv);
-            });
-            navigateTo('sop-template-page');
-        }
-
-        function updateSOPTempSection(sIdx, val) { sopTemplates[currentSOPType].sections[sIdx].title = val; }
-        function removeSOPTempSection(sIdx) { sopTemplates[currentSOPType].sections.splice(sIdx, 1); openSOPTemplate(currentSOPType); }
-        function addSOPTemplateSection() {
-            if(!sopTemplates[currentSOPType]) sopTemplates[currentSOPType] = { sections: [] };
-            sopTemplates[currentSOPType].sections.push({ title: "新階段標題", tasks: [] });
-            openSOPTemplate(currentSOPType);
-        }
-        function updateSOPTempTask(sIdx, tIdx, val) { sopTemplates[currentSOPType].sections[sIdx].tasks[tIdx] = val; }
-        function addSOPTempTask(sIdx) { sopTemplates[currentSOPType].sections[sIdx].tasks.push("新任務"); openSOPTemplate(currentSOPType); }
-        function removeSOPTempTask(sIdx, tIdx) { sopTemplates[currentSOPType].sections[sIdx].tasks.splice(tIdx, 1); openSOPTemplate(currentSOPType); }
-
-        async function saveSOPTemplate() {
-            document.getElementById('loading-overlay').style.display = 'flex';
-            await db.collection("sop_templates").doc(currentSOPType).set(sopTemplates[currentSOPType]);
-            document.getElementById('loading-overlay').style.display = 'none';
-            alert('範本已儲存');
-        }
-
-        // --- SOP 實例執行邏輯 ---
-        function renderSOPMain() {
-            const dList = document.getElementById('sop-design-list');
-            const eList = document.getElementById('sop-eng-list');
-            dList.innerHTML = ''; eList.innerHTML = '';
-
-            designProjects.forEach(p => {
-                dList.innerHTML += `<button class="menu-btn" onclick="openSOPInstance('${p.id}', 'design')">${safe(p.name)} <span class="count-badge">${safe(p.client)}</span></button>`;
-            });
-            engProjects.forEach(p => {
-                eList.innerHTML += `<button class="menu-btn" onclick="openSOPInstance('${p.id}', 'engineering')">${safe(p.name)} <span class="count-badge">${safe(p.client)}</span></button>`;
-            });
-        }
-
-        async function openSOPInstance(projectId, type) {
-            document.getElementById('loading-overlay').style.display = 'flex';
-            const snap = await db.collection("sop_instances").where("projectId", "==", projectId).get();
-            const proj = (type==='design' ? designProjects : engProjects).find(x => x.id === projectId);
-            
-            if (snap.empty) {
-                // 自動根據範本成立 SOP (回溯支援)
-                const template = sopTemplates[type] || { sections: [] };
-                const newInst = {
-                    projectId: projectId,
-                    projectName: proj.name,
-                    client: proj.client || '',
-                    type: type,
-                    sections: template.sections.map(s => ({
-                        title: s.title,
-                        tasks: s.tasks.map(t => ({ name: t, done: false, date: '' }))
-                    }))
-                };
-                const docRef = await db.collection("sop_instances").add(newInst);
-                activeSOPInstance = { id: docRef.id, ...newInst };
-            } else {
-                activeSOPInstance = { id: snap.docs[0].id, ...snap.docs[0].data() };
-            }
-            renderSOPInstance();
-            document.getElementById('loading-overlay').style.display = 'none';
-            navigateTo('sop-instance-page');
-        }
-
-        function renderSOPInstance() {
-            document.getElementById('sop-instance-info-header').innerHTML = `
-                <div style="font-weight:bold; color:var(--blue); font-size:1.1rem;">${safe(activeSOPInstance.projectName)}</div>
-                <div style="font-size:0.85rem; color:var(--text-secondary)">業主：${safe(activeSOPInstance.client)}</div>
-            `;
-            const body = document.getElementById('sop-instance-body');
-            body.innerHTML = '';
-
-            activeSOPInstance.sections.forEach((sec, sIdx) => {
-                const secDiv = document.createElement('div');
-                secDiv.innerHTML = `
-                    <div class="sop-section-header" onclick="this.nextElementSibling.classList.toggle('hidden'); this.classList.toggle('collapsed')">
-                        <span style="font-weight:bold">${safe(sec.title)}</span>
-                    </div>
-                    <div class="sop-section-content"></div>
-                `;
-                const content = secDiv.querySelector('.sop-section-content');
-                sec.tasks.forEach((task, tIdx) => {
-                    const row = document.createElement('div');
-                    row.className = 'sop-item-row';
-                    row.innerHTML = `
-                        <div class="custom-checkbox ${task.done?'checked':''}" onclick="toggleSOPTask(${sIdx}, ${tIdx})"></div>
-                        <div class="sop-item-name">${safe(task.name)}</div>
-                        <input type="date" class="mini-date sop-item-date" value="${task.date}" onchange="updateSOPTaskDate(${sIdx}, ${tIdx}, this.value)">
-                    `;
-                    content.appendChild(row);
-                });
-                body.appendChild(secDiv);
-            });
-        }
-
-        async function toggleSOPTask(sIdx, tIdx) {
-            activeSOPInstance.sections[sIdx].tasks[tIdx].done = !activeSOPInstance.sections[sIdx].tasks[tIdx].done;
-            renderSOPInstance();
-            await db.collection("sop_instances").doc(activeSOPInstance.id).update({ sections: activeSOPInstance.sections });
-        }
-        async function updateSOPTaskDate(sIdx, tIdx, val) {
-            activeSOPInstance.sections[sIdx].tasks[tIdx].date = val;
-            await db.collection("sop_instances").doc(activeSOPInstance.id).update({ sections: activeSOPInstance.sections });
-        }
-
-        // --- 核心邏輯修改：新增案件時連動 SOP ---
-        async function createProject() {
-            const name = document.getElementById('new-name').value;
-            if (!name) return alert("請輸入案件名稱");
-            const collection = addModeType === 'design' ? "design_projects" : "eng_projects";
-            const newObj = { name: name, status: 'active', createdAt: firebase.firestore.FieldValue.serverTimestamp() };
-            
-            document.getElementById('loading-overlay').style.display = 'flex';
-            try {
-                const docRef = await db.collection(collection).add(newObj);
-                
-                // 自動成立所屬 SOP
-                const template = sopTemplates[addModeType] || { sections: [] };
-                const sopInst = {
-                    projectId: docRef.id,
-                    projectName: name,
-                    client: '',
-                    type: addModeType,
-                    sections: template.sections.map(s => ({
-                        title: s.title,
-                        tasks: s.tasks.map(t => ({ name: t, done: false, date: '' }))
-                    }))
-                };
-                await db.collection("sop_instances").add(sopInst);
-
-                document.getElementById('loading-overlay').style.display = 'none';
-                closeAddModal();
-                openDetail(addModeType, docRef.id);
-            } catch (e) {
-                document.getElementById('loading-overlay').style.display = 'none';
-                alert(e.message);
-            }
-        }
-
-        // --- 原有基礎功能 (略) ---
-        function openAddModal(t) { addModeType = t; document.getElementById('modal-title').innerText = t==='design'?'新增設計':'新增工程'; document.getElementById('add-modal').style.display='flex'; }
-        function closeAddModal() { document.getElementById('add-modal').style.display='none'; }
-        function openDetail(type, id) {
-            currentType = type; currentId = id;
-            const list = type === 'design' ? designProjects : engProjects;
-            const p = list.find(x => x.id === id);
-            document.getElementById('d-name').value = p.name || '';
-            document.getElementById('d-client').value = p.client || '';
-            navigateTo('project-detail-page');
-        }
-        async function updateField(k, v) { await db.collection(currentType==='design'?"design_projects":"eng_projects").doc(currentId).update({[k]:v}); }
-        function changeMonth(n) { calDate.setMonth(calDate.getMonth()+n); /* renderCalendar logic */ }
     </script>
 </body>
 </html>
