@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>對錯空間 v25.18 (Log Edit & Date + SOP)</title>
+    <title>對錯空間 v26.30 (Log Edit & Date + Advanced SOP)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#202124">
@@ -53,20 +53,19 @@
         .project-card { background: var(--surface-color); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid var(--divider); position: relative; overflow: hidden; cursor: pointer; z-index: 1; }
         .progress-bg { position: absolute; bottom: 0; left: 0; height: 4px; width: 100%; background: #444; z-index: 0; }
         .progress-fill { height: 100%; transition: width 0.3s; background: linear-gradient(to right, var(--green), var(--yellow)); }
-        .tag { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
-        .tag-track { background: var(--yellow); color: #333; } .tag-done { background: var(--green); color: #333; } .tag-suspend { background: var(--red); color: white; } .tag-warranty { background: var(--purple); color: white; }
         .card-progress-text { font-size: 0.85rem; color: var(--teal); margin-top: 5px; display: flex; align-items: center; gap: 5px; } .card-progress-text::before { content: '►'; font-size: 0.7rem; }
+        .tag { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+        .tag-track { background: var(--yellow); color: #333; } .tag-suspend { background: var(--red); color: white; }
 
-        /* Detail Page Rows Alignment */
+        /* Detail Page Layouts */
         .detail-section { background: var(--surface-color); padding: 20px; border-radius: 12px; margin-bottom: 15px; }
-        .detail-title { font-size: 0.9rem; font-weight: bold; color: var(--blue); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center;}
-        .input-row { margin-bottom: 15px; } 
+        .detail-title { font-size: 0.9rem; font-weight: bold; color: var(--blue); margin-bottom: 15px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center;}
         .input-row-flex { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 15px; }
         .input-label { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px; display: block; }
         .detail-input { width: 100%; padding: 12px; box-sizing: border-box; background: #202124; border: 1px solid var(--divider); border-radius: 8px; font-size: 1rem; color: var(--text-primary); }
         .detail-input:focus { border-color: var(--blue); outline: none; }
 
-        /* Stages List */
+        /* Stages & SOP Execution */
         .checklist-item { border-bottom: 1px solid var(--divider); padding: 15px 0; background: var(--surface-color); }
         .check-header { display: flex; align-items: center; margin-bottom: 10px; justify-content: space-between; position: relative; z-index: 10; }
         .custom-checkbox { width: 22px; height: 22px; border: 2px solid var(--text-secondary); border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; cursor: pointer; color: transparent; font-weight: bold; }
@@ -75,9 +74,20 @@
         
         .stage-details { margin-top: 10px; padding-left: 10px; border-left: 2px solid var(--divider); margin-left: 35px; }
         .date-row { display: flex; gap: 10px; margin-top: 8px; align-items: center; } .date-group { flex: 1; } .date-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 2px; }
-        .mini-date, .pay-date-input { width: 100%; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); padding: 8px 4px; border-radius: 6px; font-size: 0.85rem; color-scheme: dark; height: 38px; box-sizing: border-box;}
+        .mini-date, .pay-date-input, .sop-date-input { width: 100%; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); padding: 8px 4px; border-radius: 6px; font-size: 0.85rem; color-scheme: dark; height: 38px; box-sizing: border-box;}
 
-        /* Payment Rows Alignment */
+        /* SOP Styles */
+        .sop-header { background: rgba(252, 173, 112, 0.1); border-left: 5px solid var(--orange); padding: 12px; margin-top: 10px; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .sop-header.collapsed::after { content: '▶'; } .sop-header::after { content: '▼'; font-size: 0.7rem; transition: transform 0.3s; }
+        .sop-content { padding: 10px 0; } .sop-content.hidden { display: none; }
+        .sop-item-row { display: flex; align-items: center; gap: 10px; padding: 10px 5px; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+        .sop-text { flex: 1; font-size: 0.95rem; line-height: 1.2; }
+        .sop-date-col { width: 135px; flex-shrink: 0; }
+        .sop-tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; color: var(--text-secondary); }
+        .sop-tab.active { color: var(--orange); border-bottom: 2px solid var(--orange); font-weight: bold; }
+        .btn-sop-action { background: none; border: 1px solid var(--orange); color: var(--orange); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; margin-top: 5px; }
+
+        /* Payment Styles */
         .payment-row { display: flex; flex-direction: row; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-top: 10px; }
         .pay-col-check { flex: 0 0 30px; display: flex; justify-content: center; align-items: center; }
         .pay-col-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
@@ -85,45 +95,24 @@
         .pay-name-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid transparent; color: var(--text-primary); padding: 4px 0; font-size: 1rem; font-weight: 500; }
         .pay-amount-input { width: 100px; background: #202124; border: 1px solid var(--divider); color: var(--yellow); text-align: right; border-radius: 6px; padding: 8px 6px; font-weight: bold; font-size: 0.9rem; height: 38px; box-sizing: border-box; }
         .stage-selector { background: #202124; border: 1px solid var(--divider); color: var(--text-secondary); padding: 8px 6px; border-radius: 6px; width: 100%; font-size: 0.85rem; height: 38px; box-sizing: border-box; }
-
-        /* Accordion */
         .pay-accordion-header { background: var(--surface-color); padding: 12px 15px; margin-top: 15px; border-radius: 8px; border-left: 5px solid var(--teal); display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; color: var(--teal); }
-        .pay-accordion-header.collapsed::after { content: '▶'; } .pay-accordion-header::after { content: '▼'; font-size: 0.7rem; transition: transform 0.3s; }
         .pay-accordion-content.hidden { display: none; }
 
-        /* Logs */
-        .log-input-area { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--divider); }
-        .btn-add-log { background: var(--blue); color: #202124; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
-        .log-item { background: #2b2c2f; border-radius: 8px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--blue); position: relative; }
-        .log-image { width: 100%; border-radius: 6px; margin-top: 10px; border: 1px solid var(--divider); }
-        .log-delete { position: absolute; top: 10px; right: 10px; color: var(--red); background: none; border: none; cursor: pointer; font-size: 1.2rem; }
-        .log-edit { position: absolute; top: 10px; right: 40px; color: var(--text-secondary); background: none; border: 1px solid var(--text-secondary); border-radius:12px; cursor: pointer; font-size: 0.8rem; padding: 2px 8px; }
-
-        /* SOP Styles */
-        .sop-header { background: rgba(252, 173, 112, 0.1); border-left: 5px solid var(--orange); padding: 12px; margin-top: 10px; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-        .sop-header.collapsed::after { content: '▶'; } .sop-header::after { content: '▼'; font-size: 0.7rem; transition: transform 0.3s; }
-        .sop-content.hidden { display: none; }
-        .sop-item-row { display: flex; align-items: center; gap: 10px; padding: 10px 5px; border-bottom: 1px dashed rgba(255,255,255,0.05); position: relative; }
-        .sop-text { flex: 1; font-size: 0.95rem; line-height: 1.2; }
-        .sop-date-input { width: 140px; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); border-radius: 6px; padding: 8px 6px; font-size: 0.85rem; color-scheme: dark; height: 38px; box-sizing: border-box; }
-        .sop-tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; color: var(--text-secondary); }
-        .sop-tab.active { color: var(--orange); border-bottom: 2px solid var(--orange); font-weight: bold; }
-        .btn-sop-action { background: none; border: 1px solid var(--orange); color: var(--orange); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; margin-top: 5px; }
-
-        /* Sync Modal */
+        /* Template & Import Modal */
         .modal-sync { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; }
-        .sync-box { background: var(--surface-color); padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; border: 1px solid var(--divider); }
+        .sync-box { background: var(--surface-color); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; border: 1px solid var(--divider); }
         .sync-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid var(--divider); }
 
         /* UI Helpers */
+        .btn-mini-del { background: none; border: none; color: var(--red); font-size: 1.2rem; cursor: pointer; flex-shrink: 0; padding: 5px; }
         .menu-btn { display: block; width: 100%; padding: 20px; margin-bottom: 15px; background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--divider); border-radius: 12px; font-size: 1.1rem; text-align: left; cursor: pointer; position: relative; } 
         .menu-btn .count-badge { float: right; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; font-size: 0.9rem; color: var(--text-secondary); }
         .fab { position: fixed; bottom: 30px; right: 30px; width: 56px; height: 56px; background: var(--blue); color: #202124; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 200; cursor: pointer; }
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); align-items: center; justify-content: center; } .modal-content { background: var(--surface-color); padding: 25px; border-radius: 15px; width: 85%; max-width: 350px; }
-        .btn-mini-del { background: none; border: none; color: var(--red); font-size: 1.2rem; cursor: pointer; flex-shrink: 0; padding: 5px; }
-        .action-bar { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; } .action-btn { flex: 1; padding: 15px; border: none; border-radius: 12px; font-size: 0.95rem; cursor: pointer; color: #202124; font-weight: bold; min-width: 100px;}
-        .btn-edit-mode.active { background: var(--blue); color: #202124; }
-        #progress-display { margin-left: 10px; }
+        .action-bar { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; } .action-btn { flex: 1; padding: 15px; border: none; border-radius: 12px; font-size: 0.95rem; cursor: pointer; color: #202124; font-weight: bold; min-width: 100px;} 
+        .toggle-switch { position: relative; display: inline-block; width: 34px; height: 20px; } .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 34px; } .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; } input:checked + .slider { background-color: var(--blue); } input:checked + .slider:before { transform: translateX(14px); }
+        #advancement-alert { background: rgba(242, 139, 130, 0.2); border: 1px solid var(--red); color: var(--red); padding: 12px; margin-bottom: 20px; border-radius: 8px; display: none; font-weight: bold; text-align: center; }
     </style>
 </head>
 <body>
@@ -176,6 +165,9 @@
         </div>
         <div id="sop-tpl-editor-container"></div>
         <button class="btn-sop-action" style="width:100%; margin-top:20px; padding:12px;" onclick="addSopTplHeader()">+ 新增 SOP 標題</button>
+        <div style="margin-top:30px; border-top:1px solid var(--divider); padding-top:20px;">
+            <button style="background:none; border:1px solid var(--red); color:var(--red); padding:10px; border-radius:6px; width:100%; cursor:pointer;" onclick="syncSopToExisting()">同步範本至現有案件</button>
+        </div>
     </div>
 
     <div id="design-list-page" class="page container"><div id="design-list-container"></div><div class="fab" onclick="openAddModal('design')">+</div></div>
@@ -183,9 +175,9 @@
     <div id="warranty-list-page" class="page container"><div id="warranty-list-container"></div></div>
 
     <div id="payment-page" class="page container">
-        <div class="payment-tabs">
-            <button class="tab-btn active" id="pay-tab-design" onclick="switchPaymentTab('design')">設計合約</button>
-            <button class="tab-btn" id="pay-tab-eng" onclick="switchPaymentTab('engineering')">工程合約</button>
+        <div style="display:flex; border-bottom:1px solid var(--divider); margin-bottom:15px;">
+            <button class="sop-tab active" id="pay-tab-design" onclick="switchPaymentTab('design')">設計合約</button>
+            <button class="sop-tab" id="pay-tab-eng" onclick="switchPaymentTab('engineering')">工程合約</button>
         </div>
         <div id="payment-content-container"></div>
     </div>
@@ -195,12 +187,12 @@
 
         <div class="detail-section">
             <div class="detail-title">基本資料</div>
-            <div class="input-row"><label class="input-label">案件名稱</label><input type="text" class="detail-input" id="d-name" onchange="updateField('name', this.value)"></div>
+            <input type="text" class="detail-input" id="d-name" placeholder="案件名稱" onchange="updateField('name', this.value)" style="margin-bottom:15px;">
             <div class="input-row-flex">
                 <div style="flex:1"><label class="input-label">業主姓名</label><input type="text" class="detail-input" id="d-client" onchange="updateField('client', this.value)"></div>
                 <div style="flex:1"><label class="input-label">聯絡電話</label><input type="text" class="detail-input" id="d-phone" onchange="updateField('phone', this.value)"></div>
             </div>
-            <div class="input-row"><label class="input-label">案件地址</label><input type="text" class="detail-input" id="d-address" onchange="updateField('address', this.value)"></div>
+            <input type="text" class="detail-input" id="d-address" placeholder="地址" onchange="updateField('address', this.value)" style="margin-bottom:15px;">
             <div class="input-row-flex">
                 <div style="flex:1"><label class="input-label">車位號碼</label><input type="text" class="detail-input" id="d-parking" onchange="updateField('parking', this.value)"></div>
                 <div style="flex:1"><label class="input-label">大門密碼</label><input type="text" class="detail-input" id="d-code" onchange="updateField('code', this.value)"></div>
@@ -211,7 +203,7 @@
             </div>
         </div>
 
-        <!-- SOP 執行進度區塊 -->
+        <!-- SOP 執行區塊 -->
         <div class="detail-section" style="border-left: 5px solid var(--orange);">
             <div class="detail-title" style="color:var(--orange)">
                 SOP 執行進度
@@ -225,10 +217,9 @@
         <div id="sync-sop-modal" class="modal-sync">
             <div class="sync-box">
                 <h3 style="color:var(--orange); margin-top:0;">匯入 SOP 範本</h3>
-                <p style="font-size:0.85rem; color:var(--text-secondary);">請選擇匯入方式：</p>
                 <button class="login-btn" style="background:var(--red); margin-bottom:20px;" onclick="importSopFromTemplate('all')">⚠️ 全部覆蓋匯入</button>
                 <hr style="border:0; border-top:1px solid var(--divider); margin-bottom:15px;">
-                <p style="font-size:0.85rem; color:var(--text-secondary);">或是挑選特定項目加入：</p>
+                <p style="font-size:0.85rem; color:var(--text-secondary);">或是選擇特定項目加入：</p>
                 <div id="sync-sop-list"></div>
                 <div style="display:flex; gap:10px; margin-top:20px;">
                     <button class="login-btn" style="flex:1; background:#555;" onclick="closeSyncSopModal()">取消</button>
@@ -239,7 +230,7 @@
 
         <div class="detail-section">
             <div class="detail-title" style="color:var(--teal)">收款進度 & 合約</div>
-            <div id="design-price-row" style="display:none; margin-bottom:15px;">
+            <div id="design-price-row" style="display:none;">
                 <label class="input-label">設計費總額</label>
                 <input type="text" class="detail-input" id="d-design-price" onfocus="toNum(this)" onkeyup="formatCurrency(this)" onchange="toCur(this); updateField('designPrice', this.value)">
                 <div style="display:flex; align-items:center; margin-top:10px;">
@@ -248,7 +239,7 @@
                     <span id="d-design-tax-val" style="margin-left:auto; color:#aaa;">$0</span>
                 </div>
             </div>
-            <div id="engineering-price-row" style="display:none; margin-bottom:15px;">
+            <div id="engineering-price-row" style="display:none;">
                 <div class="input-row-flex">
                     <div style="flex:1"><label class="input-label">合約金額</label><input type="text" class="detail-input" id="d-eng-base" onfocus="toNum(this)" onkeyup="formatCurrency(this)" onchange="toCur(this); updateField('engBasePrice', this.value)"></div>
                     <div style="flex:1"><label class="input-label">追加減</label><input type="text" class="detail-input" id="d-eng-var" onfocus="toNum(this)" onkeyup="formatCurrency(this)" onchange="toCur(this); updateField('engVarPrice', this.value)"></div>
@@ -273,13 +264,13 @@
         </div>
 
         <div class="detail-section">
-            <div class="detail-title">階段進度 <span id="progress-display" style="color:var(--teal); font-size:0.8rem;">0%</span><button class="btn-edit-mode" id="btn-edit-mode" onclick="toggleEditMode()">⚙️ 設定</button></div>
+            <div class="detail-title">施工階段進度 <span id="progress-display" style="color:var(--teal); font-size:0.8rem;">0%</span><button class="btn-sop-action" id="btn-edit-mode" onclick="toggleEditMode()" style="margin:0;">⚙️ 設定</button></div>
             <div id="checklist-container"></div>
-            <button id="btn-add-stage" class="btn-add-stage" style="display:none; width:100%;" onclick="addCustomStage()">+ 自訂項目</button>
+            <button id="btn-add-stage" class="btn-sop-action" style="display:none; width:100%;" onclick="addCustomStage()">+ 自訂項目</button>
         </div>
 
         <div class="detail-section">
-            <div class="detail-title">案件歷程 & 施工日誌</div>
+            <div class="detail-title">施工日誌</div>
             <div class="log-input-area">
                 <input type="date" id="new-log-date" class="detail-input">
                 <textarea id="new-log-text" class="detail-input" rows="3" placeholder="紀錄內容..." style="margin-top:10px;"></textarea>
@@ -379,14 +370,14 @@
             });
         }
         async function saveSopTpl() { await db.collection("settings").doc("sop_templates").set(sopTemplates); }
-        function addSopTplHeader() { sopTemplates[currentSopTplType].push({title:'新階段', items:[]}); saveSopTpl(); renderSopTplEditor(); }
+        function addSopTplHeader() { if (!sopTemplates[currentSopTplType]) sopTemplates[currentSopTplType] = []; sopTemplates[currentSopTplType].push({title:'新階段', items:[]}); saveSopTpl(); renderSopTplEditor(); }
         function updateSopTplTitle(idx,v) { sopTemplates[currentSopTplType][idx].title = v; saveSopTpl(); }
         function deleteSopTplHeader(idx) { if(confirm('刪除標題？')){ sopTemplates[currentSopTplType].splice(idx,1); saveSopTpl(); renderSopTplEditor(); }}
         function addSopTplItem(idx) { sopTemplates[currentSopTplType][idx].items.push({text:'新項目', done:false, date:''}); saveSopTpl(); renderSopTplEditor(); }
         function updateSopTplItem(h,i,v) { sopTemplates[currentSopTplType][h].items[i].text = v; saveSopTpl(); }
         function deleteSopTplItem(h,i) { sopTemplates[currentSopTplType][h].items.splice(i,1); saveSopTpl(); renderSopTplEditor(); }
 
-        // --- SOP 詳情內編輯與匯入 ---
+        // --- 案件內 SOP 編輯與匯入 ---
         function renderProjectSopExecution(p) {
             const container = document.getElementById('project-sop-execution-container'); container.innerHTML = '';
             (p.sopData || []).forEach((h, hIdx) => {
@@ -394,7 +385,7 @@
                 head.onclick = function(e){ if(e.target.tagName!=='BUTTON'){ this.classList.toggle('collapsed'); this.nextElementSibling.classList.toggle('hidden'); }};
                 const content = document.createElement('div'); content.className = 'sop-content hidden';
                 h.items.forEach((item, iIdx) => {
-                    content.innerHTML += `<div class="sop-item-row"><div class="custom-checkbox ${item.done?'checked':''}" onclick="toggleSopItem(${hIdx},${iIdx})"></div><input type="text" class="sop-text" style="background:none; border:none; color:white; flex:1;" value="${safe(item.text)}" onchange="updateLocalSopItem(${hIdx},${iIdx},this.value)"><input type="date" class="sop-date-input" value="${item.date||''}" onchange="updateSopDate(${hIdx},${iIdx},this.value)"><button class="btn-mini-del" onclick="deleteLocalSopItem(${hIdx},${iIdx})">✕</button></div>`;
+                    content.innerHTML += `<div class="sop-item-row"><div class="custom-checkbox ${item.done?'checked':''}" onclick="toggleSopItem(${hIdx},${iIdx})"></div><input type="text" class="sop-text" style="background:none; border:none; color:white; flex:1;" value="${safe(item.text)}" onchange="updateLocalSopItem(${hIdx},${iIdx},this.value)"><div class="sop-date-col"><input type="date" class="sop-date-input" value="${item.date||''}" onchange="updateSopDate(${hIdx},${iIdx},this.value)"></div><button class="btn-mini-del" onclick="deleteLocalSopItem(${hIdx},${iIdx})">✕</button></div>`;
                 });
                 content.innerHTML += `<button class="btn-sop-action" style="margin:10px 0 10px 35px;" onclick="addLocalSopItem(${hIdx})">+ 新增項目</button>`;
                 container.appendChild(head); container.appendChild(content);
@@ -413,7 +404,7 @@
         function closeSyncSopModal() { document.getElementById('sync-sop-modal').style.display='none'; }
         async function importSopFromTemplate(mode) {
             const p = getActiveProject(); const tpl = sopTemplates[currentType] || [];
-            if(mode==='all'){ if(!confirm('這將覆蓋現有所有進度，確定？')) return; p.sopData = JSON.parse(JSON.stringify(tpl)); }
+            if(mode==='all'){ if(!confirm('這將覆蓋現有進度，確定？')) return; p.sopData = JSON.parse(JSON.stringify(tpl)); }
             else {
                 const checks = document.querySelectorAll('.sync-check:checked');
                 if(!checks.length) return alert('未勾選項目');
@@ -440,7 +431,7 @@
         async function addLocalSopStage() { const p = getActiveProject(); p.sopData.push({title:'新階段', items:[]}); await updateActiveSop(p.sopData); renderProjectSopExecution(p); }
         async function deleteLocalSopStage(h) { if(confirm('刪除整個階段？')){ const p = getActiveProject(); p.sopData.splice(h,1); await updateActiveSop(p.sopData); renderProjectSopExecution(p); }}
 
-        // --- 核心恢復 ---
+        // --- 核心邏輯 ---
         function navigateTo(id) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); document.getElementById('back-btn').style.display = (id==='home-page'?'none':'block'); refreshUI(); }
         function goBack() { navigateTo('home-page'); }
         function logout() { auth.signOut().then(()=>location.reload()); }
@@ -538,6 +529,7 @@
         function parseCurrency(s) { return parseInt(s.toString().replace(/,/g, '')) || 0; }
         function toNum(el) { el.value = el.value.replace(/,/g, ''); }
         function toCur(el) { el.value = formatNumber(el.value); }
+        function formatCurrency(input) { let v = input.value.replace(/,/g, ''); if(!v)return; input.value = v.replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
         function calculateTotalDesign(p) { let pr = parseInt(p.designPrice)||0, tx = p.taxEnabled?Math.round(pr*0.05):0; document.getElementById('d-design-tax-val').innerText = '$'+formatNumber(tx); return pr+tx; }
         function calculateTotalEng(p) { let b = parseInt(p.engBasePrice)||0, v = parseInt(p.engVarPrice)||0, sum = b+v; let sp = p.supervisionEnabled?Math.round(sum*(p.supervisionRate||0.05)):0; let tx = p.taxEnabled?Math.round((sum+sp)*0.05):0; document.getElementById('d-eng-sup-val').innerText = '$'+formatNumber(sp); document.getElementById('d-eng-tax-val').innerText = '$'+formatNumber(tx); document.getElementById('d-eng-total').innerText = '$'+formatNumber(sum+sp+tx); return sum+sp+tx; }
         async function toggleDesignTax(e){ await updateField('taxEnabled', e); openDetail(currentType, currentId); }
@@ -600,7 +592,7 @@
         function handleTempPhoto(i){ if(i.files[0]){ tempPhotoFile=i.files[0]; const r=new FileReader(); r.onload=e=>{document.getElementById('new-log-preview').src=e.target.result; document.getElementById('new-log-preview').style.display='block';}; r.readAsDataURL(i.files[0]); }}
         async function addLog() {
             const d = document.getElementById('new-log-date').value, t = document.getElementById('new-log-text').value;
-            if(!d) return alert('請選擇日期'); document.getElementById('loading-overlay').style.display='flex';
+            if(!d) return alert('日期'); document.getElementById('loading-overlay').style.display='flex';
             let url = ''; if(tempPhotoFile){ const ref = storage.ref().child(`logs/${Date.now()}`); await ref.put(tempPhotoFile); url = await ref.getDownloadURL(); }
             const p = getActiveProject(); p.logs.push({id:Date.now(), date:d, content:t, photo:url});
             await updateField('logs', p.logs); document.getElementById('loading-overlay').style.display='none'; openDetail(currentType, currentId);
@@ -633,6 +625,13 @@
         function toggleEditMode(){ isEditMode=!isEditMode; document.getElementById('btn-edit-mode').classList.toggle('active'); document.getElementById('btn-add-stage').style.display=isEditMode?'block':'none'; renderStages(getActiveProject(), currentType); }
         function toggleStageEnable(sid,v){ const p = getActiveProject(); if(!p.stages[sid]) p.stages[sid]={done:false,enabled:true}; p.stages[sid].enabled = v; updateStageField(sid,'enabled',v); }
         function toggleDoneOptimistic(sid){ const p = getActiveProject(); if(!p.stages[sid]) p.stages[sid]={done:false,enabled:true}; p.stages[sid].done = !p.stages[sid].done; updateStageField(sid,'done',p.stages[sid].done); renderStages(p, currentType); }
+        
+        async function deleteLocalSopStage(hIdx) { if(confirm('刪除整個階段？')) { const p = getActiveProject(); p.sopData.splice(hIdx, 1); await updateActiveSop(p.sopData); renderProjectSopExecution(p); } }
+        async function deleteLocalSopItem(hIdx, iIdx) { if(confirm('刪除項目？')) { const p = getActiveProject(); p.sopData[hIdx].items.splice(iIdx, 1); await updateActiveSop(p.sopData); renderProjectSopExecution(p); } }
+        async function addLocalSopItem(hIdx) { const p = getActiveProject(); p.sopData[hIdx].items.push({text:'新項目', done:false, date:''}); await updateActiveSop(p.sopData); renderProjectSopExecution(p); }
+        async function updateLocalSopItem(hIdx, iIdx, val) { const p = getActiveProject(); p.sopData[hIdx].items[iIdx].text = val; await updateActiveSop(p.sopData); }
+        async function addLocalSopStage() { const p = getActiveProject(); if(!p.sopData) p.sopData = []; p.sopData.push({title:'新階段', items:[]}); await updateActiveSop(p.sopData); renderProjectSopExecution(p); }
+
     </script>
 </body>
 </html>
