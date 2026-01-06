@@ -83,7 +83,7 @@
         .stage-details { margin-top: 10px; padding-left: 10px; border-left: 2px solid var(--divider); margin-left: 35px; }
         .date-row { display: flex; gap: 10px; margin-top: 8px; align-items: center; } .date-group { flex: 1; } .date-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 2px; }
         
-        .mini-date { width: 100%; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); padding: 8px 4px; border-radius: 6px; font-size: 0.85rem; color-scheme: dark; }
+        .mini-date, .pay-date-input { width: 100%; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); padding: 8px 4px; border-radius: 6px; font-size: 0.85rem; color-scheme: dark; }
 
         .btn-edit-mode { background: transparent; border: 1px solid var(--text-secondary); color: var(--text-secondary); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; cursor: pointer;}
         .btn-edit-mode.active { background: var(--blue); color: #202124; border-color: var(--blue); }
@@ -93,20 +93,20 @@
         .btn-add-log { background: var(--blue); color: #202124; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
         .log-list { margin-top: 10px; } .log-item { background: #2b2c2f; border-radius: 8px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--blue); position: relative; }
 
-        /* Payment Row Alignment - 修正重點 */
+        /* Payment Row Alignment */
         .payment-row { display: flex; flex-direction: row; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-top: 10px; }
         .pay-col-check { flex: 0 0 30px; display: flex; justify-content: center; align-items: center; }
-        .pay-col-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
-        .pay-col-info { flex: 0 0 145px; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; justify-content: flex-end; }
+        .pay-col-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+        .pay-col-info { flex: 0 0 130px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; text-align: right; }
         
         .pay-name-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid transparent; color: var(--text-primary); padding: 4px 0; font-size: 1rem; font-weight: 500; }
-        .pay-amount-input { width: 100px; background: #202124; border: 1px solid var(--divider); color: var(--yellow); text-align: right; border-radius: 6px; padding: 8px 6px; font-weight: bold; font-size: 0.9rem; height: 38px; box-sizing: border-box; }
-        .pay-date-input { width: 140px; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); padding: 8px 6px; border-radius: 6px; font-size: 0.85rem; color-scheme: dark; height: 38px; box-sizing: border-box; }
+        .pay-amount-input { width: 100px; background: #202124; border: 1px solid var(--divider); color: var(--yellow); text-align: right; border-radius: 6px; padding: 6px; font-weight: bold; font-size: 0.9rem; }
+        .pay-date-input { width: 110px; }
 
         .payment-tabs { display: flex; border-bottom: 1px solid var(--divider); margin-bottom: 15px; }
         .tab-btn { flex: 1; padding: 12px; background: none; border: none; color: var(--text-secondary); border-bottom: 2px solid transparent; cursor: pointer; font-size: 1rem; } .tab-btn.active { color: var(--teal); border-bottom-color: var(--teal); font-weight: bold; }
         
-        .stage-selector { background: #202124; border: 1px solid var(--divider); color: var(--text-secondary); padding: 8px 6px; border-radius: 6px; width: 100%; font-size: 0.85rem; height: 38px; box-sizing: border-box; }
+        .stage-selector { background: #202124; border: 1px solid var(--divider); color: var(--text-secondary); padding: 6px; border-radius: 4px; width: 100%; font-size: 0.8rem; }
         
         .menu-btn { display: block; width: 100%; padding: 20px; margin-bottom: 15px; background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--divider); border-radius: 12px; font-size: 1.1rem; text-align: left; cursor: pointer; position: relative; } 
         .menu-btn .count-badge { float: right; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; font-size: 0.9rem; color: var(--text-secondary); }
@@ -127,11 +127,12 @@
         .sop-content.hidden { display: none; }
         .sop-item-row { display: flex; align-items: center; gap: 10px; padding: 10px 5px; border-bottom: 1px dashed rgba(255,255,255,0.05); }
         .sop-text { flex: 1; font-size: 0.95rem; line-height: 1.2; }
-        .sop-date-input { width: 110px; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); border-radius: 6px; padding: 6px; font-size: 0.8rem; color-scheme: dark; height: 38px; box-sizing: border-box; }
+        .sop-date-input { width: 110px; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); border-radius: 6px; padding: 6px; font-size: 0.8rem; color-scheme: dark; }
         .sop-tab-container { display: flex; border-bottom: 1px solid var(--divider); margin-bottom: 15px; }
         .sop-tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; color: var(--text-secondary); }
         .sop-tab.active { color: var(--orange); border-bottom: 2px solid var(--orange); font-weight: bold; }
         
+        /* Template Editor Rows Alignment */
         .sop-tpl-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .sop-tpl-item-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding-left: 20px; }
         .btn-mini-del { background: none; border: none; color: var(--red); font-size: 1.2rem; cursor: pointer; flex-shrink: 0; padding: 5px; display: flex; align-items: center; justify-content: center; }
@@ -182,6 +183,7 @@
         <button class="menu-btn" onclick="navigateTo('sop-tpl-page')" style="border-left: 5px solid var(--orange);">SOP 範本管理</button>
     </div>
 
+    <!-- SOP 範本管理頁面 -->
     <div id="sop-tpl-page" class="page container">
         <div class="sop-tab-container">
             <div class="sop-tab active" id="sop-tab-design" onclick="switchSopTpl('design')">設計 SOP</div>
@@ -629,7 +631,7 @@
             const container = document.getElementById('detail-payment-container'); container.innerHTML = '';
             const totalVal = (type === 'design') ? (parseInt(p.designPrice) || 0) : ((parseInt(p.engBasePrice) || 0) + (parseInt(p.engVarPrice) || 0));
             (p.payments || []).forEach((pay, idx) => {
-                let amtHtml = (type === 'design') ? `<div style="color:var(--yellow); font-weight:bold; font-size:0.95rem; height:38px; display:flex; align-items:center;">$${formatNumber(Math.round(totalVal * pay.ratio))}</div>` : `<input type="text" class="pay-amount-input" value="${formatNumber(pay.amount)}" onfocus="toNum(this)" onchange="toCur(this); updatePaymentAmount('${p.id}',${idx},this.value,'engineering')">`;
+                let amtHtml = (type === 'design') ? `<div style="color:var(--yellow); font-weight:bold; font-size:0.95rem;">$${formatNumber(Math.round(totalVal * pay.ratio))}</div>` : `<input type="text" class="pay-amount-input" value="${formatNumber(pay.amount)}" onfocus="toNum(this)" onchange="toCur(this); updatePaymentAmount('${p.id}',${idx},this.value,'engineering')">`;
                 let selHtml = ''; if(type !== 'design') {
                     let opts = '<option value="">-- 對應階段 --</option>'; const order = p.stageOrder || DEFAULT_ENG_ORDER;
                     order.forEach(sid => { if(p.stages[sid]?.enabled) opts += `<option value="${sid}" ${pay.linkedStage===sid?'selected':''}>${safe(p.stages[sid].name || STAGES_ENG_DEF[sid])}</option>`; });
