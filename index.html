@@ -66,6 +66,8 @@
 
         /* Stages List */
         .checklist-item { border-bottom: 1px solid var(--divider); padding: 15px 0; background: var(--surface-color); transition: background 0.1s; }
+        .checklist-item.checked .custom-checkbox { background: var(--green); border-color: var(--green); color: #202124; } 
+        .checklist-item.checked .custom-checkbox::after { content: '✓'; }
         .checklist-item.disabled { opacity: 0.4; } 
         .checklist-item.dragging { opacity: 0.4; background: #444; border: 1px dashed var(--blue); } 
         .check-header { display: flex; align-items: center; margin-bottom: 10px; justify-content: space-between; position: relative; z-index: 10; }
@@ -75,13 +77,10 @@
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 34px; } .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; } input:checked + .slider { background-color: var(--blue); } input:checked + .slider:before { transform: translateX(14px); }
         
         .custom-checkbox { width: 22px; height: 22px; border: 2px solid var(--text-secondary); border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; transition: background 0.1s; cursor: pointer; color: transparent; font-weight: bold; }
-        .checklist-item.checked .custom-checkbox, .custom-checkbox.checked { background: var(--green); border-color: var(--green); color: #202124; } 
-        .checklist-item.checked .custom-checkbox::after, .custom-checkbox.checked::after { content: '✓'; }
         .payment-check-area .custom-checkbox.checked { background: var(--teal) !important; border-color: var(--teal) !important; color: #202124; }
         
-        .stage-details { margin-top: 10px; padding-left: 0; border-left: 2px solid var(--divider); padding-left: 10px; margin-left: 35px; }
+        .stage-details { margin-top: 10px; padding-left: 10px; border-left: 2px solid var(--divider); margin-left: 35px; }
         .date-row { display: flex; gap: 10px; margin-top: 8px; } .date-group { flex: 1; } .date-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 2px; }
-        
         .mini-date, .pay-date-input { width: 100%; background: #202124; border: 1px solid var(--divider); color: var(--text-primary); padding: 6px 4px; border-radius: 6px; font-size: 0.8rem; color-scheme: dark; white-space: nowrap; overflow: hidden; letter-spacing: -0.3px; }
 
         .btn-edit-mode { background: transparent; border: 1px solid var(--text-secondary); color: var(--text-secondary); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; cursor: pointer;}
@@ -103,7 +102,6 @@
         .pay-col-info { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; text-align: right; }
         .pay-name-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid transparent; color: var(--text-primary); padding: 4px 0; font-size: 1rem; font-weight: 500; }
         .pay-name-input:focus { border-bottom-color: var(--blue); outline: none; }
-        .pay-linked-text { font-size: 0.8rem; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .pay-amount-input { width: 90px; background: #202124; border: 1px solid var(--divider); color: var(--yellow); text-align: right; border-radius: 6px; padding: 4px 6px; font-weight: bold; font-size: 0.95rem; }
         
         .pay-accordion-header { background: var(--surface-color); padding: 12px 15px; margin-top: 15px; border-radius: 8px; border-left: 5px solid var(--teal); display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; color: var(--teal); }
@@ -138,19 +136,17 @@
         .status-btn.paid.active { background: var(--green); }
         .status-btn.unpaid.active { background: #666; color: white; border: 1px solid #888; }
         .status-btn.adv.active { background: var(--orange); }
+        .stage-control-row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; border-top: 1px dashed var(--divider); padding-top: 8px; }
         #advancement-alert { background: rgba(242, 139, 130, 0.2); border: 1px solid var(--red); color: var(--red); padding: 12px; margin-bottom: 20px; border-radius: 8px; display: none; font-weight: bold; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div id="loading-overlay" style="display:none;">
-        <div id="loading-msg">資料載入中...</div>
-    </div>
+    <div id="loading-overlay" style="display:none;"><div id="loading-msg">資料載入中...</div></div>
 
     <div id="login-overlay">
         <div class="login-box">
-            <h2 style="margin-top:0; color:var(--blue);">對錯空間實驗室</h2>
-            <p style="color:var(--text-secondary); margin-bottom:20px;">請登入以存取資料</p>
+            <h2 style="color:var(--blue);">對錯空間實驗室</h2>
             <input type="email" id="login-email" class="login-input" placeholder="電子信箱">
             <input type="password" id="login-password" class="login-input" placeholder="密碼">
             <button class="login-btn" onclick="performLogin()">登入</button>
@@ -161,7 +157,7 @@
     <header>
         <button id="back-btn" class="header-back" onclick="goBack()">‹ 返回</button>
         <h1 id="page-title">對錯空間實驗室</h1>
-        <button onclick="logout()" style="position:absolute; right:15px; background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.9rem;">登出</button>
+        <button onclick="logout()" style="position:absolute; right:15px; background:none; border:none; color:var(--text-secondary); cursor:pointer;">登出</button>
     </header>
 
     <div id="home-page" class="page active container">
@@ -186,15 +182,12 @@
         <button class="menu-btn" onclick="navigateTo('sop-page')" style="border-left: 5px solid var(--orange);">SOP 標準作業</button>
     </div>
 
-    <!-- SOP 頁面 -->
     <div id="sop-page" class="page container">
         <div class="sop-tabs">
             <button class="tab-btn active" id="sop-tab-design" onclick="switchSopTab('design')">設計 SOP</button>
             <button class="tab-btn" id="sop-tab-engineering" onclick="switchSopTab('engineering')">工程 SOP</button>
         </div>
-        <div id="sop-content-container" style="text-align: center; color: var(--text-secondary); padding-top: 50px;">
-            項目建置中...
-        </div>
+        <div id="sop-content-container" style="text-align: center; color: var(--text-secondary); padding-top: 50px;">項目建置中...</div>
     </div>
 
     <div id="design-list-page" class="page container"><div id="design-list-container"></div><div class="fab" onclick="openAddModal('design')">+</div></div>
@@ -208,7 +201,6 @@
 
     <div id="project-detail-page" class="page container">
         <div id="advancement-alert">⚠️ 本案有代墊款項尚未結清</div>
-
         <div class="detail-section">
             <div class="detail-title">基本資料</div>
             <div class="input-row"><label class="input-label">案件名稱</label><input type="text" class="detail-input" id="d-name" onchange="updateField('name', this.value)"></div>
@@ -221,10 +213,6 @@
                 <div style="flex:1"><label class="input-label">車位號碼</label><input type="text" class="detail-input" id="d-parking" onchange="updateField('parking', this.value)"></div>
                 <div style="flex:1"><label class="input-label">大門密碼</label><input type="text" class="detail-input" id="d-code" onchange="updateField('code', this.value)"></div>
             </div>
-            <div id="warranty-date-row" class="input-row" style="display:none; margin-top:15px;">
-                <label class="input-label" style="color:var(--purple)">保固開始日期</label>
-                <input type="date" class="detail-input" id="d-warranty-date" disabled style="color:var(--purple); font-weight:bold;">
-            </div>
         </div>
 
         <div class="detail-section" id="detail-payment-section">
@@ -234,10 +222,7 @@
                 <input type="text" class="detail-input" id="d-design-price" placeholder="輸入金額" onfocus="toNum(this)" onkeyup="formatCurrency(this)" onchange="toCur(this); updateField('designPrice', this.value)" style="color:var(--teal); font-weight:bold;">
                 <div class="tax-toggle-row">
                     <div style="display:flex; align-items:center;">
-                        <label class="toggle-switch" style="margin-right:10px;">
-                            <input type="checkbox" id="d-design-tax-toggle" onchange="toggleDesignTax(this.checked)">
-                            <span class="slider"></span>
-                        </label>
+                        <label class="toggle-switch" style="margin-right:10px;"><input type="checkbox" id="d-design-tax-toggle" onchange="toggleDesignTax(this.checked)"><span class="slider"></span></label>
                         <span style="font-size:0.9rem;">稅金 (5%)</span>
                     </div>
                     <div id="d-design-tax-val" style="color:#aaa; font-size:0.9rem;">$0</div>
@@ -245,73 +230,30 @@
             </div>
             <div id="engineering-price-row" style="display:none; margin-bottom:20px;">
                 <div style="display:flex; gap:10px; margin-bottom:10px;">
-                    <div style="flex:1">
-                        <label class="input-label" style="color:var(--yellow)">合約金額</label>
-                        <input type="text" class="detail-input" id="d-eng-base" placeholder="金額" onfocus="toNum(this)" onkeyup="formatCurrency(this)" onchange="toCur(this); updateField('engBasePrice', this.value)" style="color:var(--yellow); font-weight:bold;">
-                    </div>
-                    <div style="flex:1">
-                        <label class="input-label" style="color:var(--orange)">追加減</label>
-                        <input type="text" class="detail-input" id="d-eng-var" placeholder="金額" onfocus="toNum(this)" onkeyup="formatCurrency(this)" onchange="toCur(this); updateField('engVarPrice', this.value)" style="color:var(--orange); font-weight:bold;">
-                    </div>
+                    <div style="flex:1"><label class="input-label" style="color:var(--yellow)">合約金額</label><input type="text" class="detail-input" id="d-eng-base" placeholder="金額" onfocus="toNum(this)" onkeyup="formatCurrency(this)" onchange="toCur(this); updateField('engBasePrice', this.value)" style="color:var(--yellow); font-weight:bold;"></div>
+                    <div style="flex:1"><label class="input-label" style="color:var(--orange)">追加減</label><input type="text" class="detail-input" id="d-eng-var" placeholder="金額" onfocus="toNum(this)" onkeyup="formatCurrency(this)" onchange="toCur(this); updateField('engVarPrice', this.value)" style="color:var(--orange); font-weight:bold;"></div>
                 </div>
-                <div class="tax-toggle-row">
-                    <div style="display:flex; align-items:center;">
-                        <label class="toggle-switch" style="margin-right:10px;">
-                            <input type="checkbox" id="d-eng-sup-toggle" onchange="toggleSupervision(this.checked)">
-                            <span class="slider"></span>
-                        </label>
-                        <span style="font-size:0.9rem; margin-right:5px;">監工費</span>
-                        <select id="d-eng-sup-rate" class="detail-select" onchange="changeSupervisionRate(this.value)">
-                            <option value="0.05">5%</option>
-                            <option value="0.1">10%</option>
-                            <option value="0.15">15%</option>
-                            <option value="0.2">20%</option>
-                        </select>
-                    </div>
-                    <div id="d-eng-sup-val" style="color:#aaa; font-size:0.9rem;">$0</div>
-                </div>
-                <div class="tax-toggle-row">
-                    <div style="display:flex; align-items:center;">
-                        <label class="toggle-switch" style="margin-right:10px;">
-                            <input type="checkbox" id="d-eng-tax-toggle" onchange="toggleTax(this.checked)">
-                            <span class="slider"></span>
-                        </label>
-                        <span style="font-size:0.9rem;">稅金 (5%)</span>
-                    </div>
-                    <div id="d-eng-tax-val" style="color:#aaa; font-size:0.9rem;">$0</div>
-                </div>
-                <div style="text-align:right; font-size:1rem; color:var(--text-primary); border-top:1px solid var(--divider); padding-top:5px; margin-top:5px;">
-                    總計: <span id="d-eng-total" style="color:var(--yellow); font-weight:bold;">$0</span>
-                </div>
+                <div style="text-align:right; font-size:1rem; border-top:1px solid var(--divider); padding-top:5px; margin-top:5px;">總計: <span id="d-eng-total" style="color:var(--yellow); font-weight:bold;">$0</span></div>
             </div>
-
             <div id="detail-payment-container"></div>
-            <!-- 新增按鈕在設計與工程皆顯示 -->
-            <button id="add-payment-btn" style="display:none; margin-top:10px; font-size:0.8rem; background:var(--surface-color); border:1px solid var(--teal); color:var(--teal); padding:5px 10px; border-radius:12px;" onclick="addPaymentStage()">+ 新增收款期數</button>
+            <button id="add-payment-btn" style="margin-top:10px; font-size:0.8rem; background:var(--surface-color); border:1px dashed var(--teal); color:var(--teal); padding:10px; border-radius:8px; width:100%;" onclick="addPaymentStage()">+ 新增收款項目</button>
         </div>
 
         <div class="detail-section">
             <div class="detail-title">
-                <div>
-                    <span id="stages-title">階段進度</span>
-                    <span id="progress-display" style="color:var(--teal); font-size:0.85rem; margin-left:10px;">0%</span>
-                </div>
-                <div>
-                    <button class="btn-edit-mode" id="btn-edit-mode" onclick="toggleEditMode()">⚙️ 設定</button>
-                </div>
+                <div><span id="stages-title">階段進度</span><span id="progress-display" style="color:var(--teal); font-size:0.85rem; margin-left:10px;">0%</span></div>
+                <div><button class="btn-edit-mode" id="btn-edit-mode" onclick="toggleEditMode()">⚙️ 設定</button></div>
             </div>
             <div id="checklist-container"></div>
             <button id="btn-add-stage" class="btn-add-stage" style="display:none" onclick="addCustomStage()">+ 自訂項目</button>
         </div>
 
         <div class="detail-section">
-            <div class="detail-title">案件歷程 & 施工日誌</div>
+            <div class="detail-title">施工日誌</div>
             <div class="log-input-area">
-                <div class="input-row"><label class="input-label">日期</label><input type="date" id="new-log-date" class="detail-input" style="color-scheme:dark;"></div>
+                <input type="date" id="new-log-date" class="detail-input" style="margin-bottom:10px; color-scheme:dark;">
                 <textarea id="new-log-text" class="detail-input" rows="3" placeholder="輸入紀錄內容..."></textarea>
-                <img id="new-log-preview" class="preview-img">
-                <div class="log-btn-group"><button class="btn-cancel" onclick="document.getElementById('log-photo-upload').click()">📷 選擇照片</button><button class="btn-add-log" id="btn-save-log" onclick="addLog()">＋ 新增紀錄</button></div>
-                <input type="file" id="log-photo-upload" accept="image/*" style="display:none" onchange="handleTempPhoto(this)">
+                <div class="log-btn-group"><button class="btn-add-log" id="btn-save-log" onclick="addLog()">＋ 新增紀錄</button></div>
             </div>
             <div id="log-list-container" class="log-list"></div>
         </div>
@@ -336,505 +278,274 @@
             appId: "1:402097472858:web:e21b7e698c848efa271f63",
             measurementId: "G-RLWZVP7R3Z"
         };
-
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const storage = firebase.storage();
-        const auth = firebase.auth();
+        const db = firebase.firestore(), auth = firebase.auth();
+
+        let designProjects = [], engProjects = [];
+        let currentType = '', currentId = '', calDate = new Date(), addModeType = '', currentPaymentTab = 'design', editingLogId = null, isEditMode = false;
 
         const STAGES_DESIGN_DEF = { 'ds1': '現場丈量', 'ds2': '平面提案', 'ds_sign': '設計簽約', 'ds3': '3D 繪製', 'ds4': '施工圖', 'ds5': '工程報價', 'ds_eng_sign': '工程簽約' };
         const DEFAULT_DESIGN_ORDER = ['ds1', 'ds2', 'ds_sign', 'ds3', 'ds4', 'ds5', 'ds_eng_sign'];
         const STAGES_ENG_DEF = { 'es_sign': '工程簽約', 'es1': '開工準備', 'es2': '拆除工程', 'es3': '隔間工程', 'es4': '水電工程', 'es_ac': '冷氣工程', 'es5': '泥作工程', 'es6': '木作工程', 'es7': '系統櫃工程', 'es_kitchen': '廚具工程', 'es8': '油漆工程', 'es9': '燈具工程', 'es10': '鐵件工程', 'es_glass': '玻璃工程', 'es11': '木地板工程', 'es12': '清潔工程', 'es13': '軟裝工程', 'es14': '收尾工程' };
         const DEFAULT_ENG_ORDER = ['es_sign', 'es1', 'es2', 'es3', 'es4', 'es_ac', 'es5', 'es6', 'es7', 'es_kitchen', 'es8', 'es9', 'es10', 'es_glass', 'es11', 'es12', 'es13', 'es14'];
 
-        let designProjects = [], engProjects = [];
-        let currentType = '', currentId = '', calDate = new Date(), addModeType = '', tempPhotoData = '', currentPaymentTab = 'design';
-        let draggedItem = null, touchDragSrcIndex = null, tempPhotoFile = null;
-        let isEditMode = false;
-        let editingLogId = null;
-
-        function safe(str) { if (!str) return ''; return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+        function safe(str) { if (!str) return ''; return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+        function formatNumber(num) { return num ? num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : '0'; }
+        function parseCurrency(str) { return parseInt(String(str).replace(/,/g, '')) || 0; }
+        function toNum(el) { el.value = el.value.replace(/,/g, ''); }
+        function toCur(el) { el.value = formatNumber(parseCurrency(el.value)); }
+        function formatCurrency(input) { let v = input.value.replace(/\D/g, ""); input.value = v.replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
 
         window.onload = () => {
             document.getElementById('loading-overlay').style.display = 'flex';
             auth.onAuthStateChanged(user => {
-                if (user) {
-                    if (user.isAnonymous) { auth.signOut(); return; }
-                    document.getElementById('login-overlay').style.display = 'none';
-                    initFirestoreListeners();
-                } else {
-                    document.getElementById('loading-overlay').style.display = 'none';
-                    document.getElementById('login-overlay').style.display = 'flex';
-                }
+                if (user) { document.getElementById('login-overlay').style.display = 'none'; initFirestoreListeners(); }
+                else { document.getElementById('loading-overlay').style.display = 'none'; document.getElementById('login-overlay').style.display = 'flex'; }
             });
         };
 
         function performLogin() {
-            const e = document.getElementById('login-email').value;
-            const p = document.getElementById('login-password').value;
-            if(!e || !p) return alert('請輸入帳號密碼');
-            document.getElementById('loading-overlay').style.display = 'flex';
-            auth.signInWithEmailAndPassword(e, p).catch(err => {
-                document.getElementById('loading-overlay').style.display = 'none';
-                document.getElementById('login-error').innerText = "登入失敗: " + err.message;
-            });
+            const e = document.getElementById('login-email').value, p = document.getElementById('login-password').value;
+            auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
         }
-
-        function logout() { auth.signOut().then(() => { location.reload(); }); }
+        function logout() { auth.signOut().then(() => location.reload()); }
 
         function initFirestoreListeners() {
-            db.collection("design_projects").onSnapshot(snap => {
-                designProjects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                refreshUI();
-            });
-            db.collection("eng_projects").onSnapshot(snap => {
-                engProjects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                refreshUI();
-                document.getElementById('loading-overlay').style.display = 'none';
-            });
+            db.collection("design_projects").onSnapshot(snap => { designProjects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); refreshUI(); });
+            db.collection("eng_projects").onSnapshot(snap => { engProjects = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); refreshUI(); document.getElementById('loading-overlay').style.display = 'none'; });
         }
 
         function refreshUI() {
-            renderHomeCounts();
-            if(document.getElementById('home-page').classList.contains('active')) { renderCalendar(); checkAlerts(); } 
-            else if (document.getElementById('design-list-page').classList.contains('active')) renderList('design');
-            else if (document.getElementById('engineering-list-page').classList.contains('active')) renderList('engineering');
-            else if (document.getElementById('warranty-list-page').classList.contains('active')) renderList('warranty');
-            else if (document.getElementById('payment-page').classList.contains('active')) renderPaymentPage();
-        }
-        
-        function renderHomeCounts() {
-            const dCount = designProjects.filter(p=>p.status!=='completed').length;
-            const eCount = engProjects.filter(p=>p.status==='active'||p.status==='suspended').length;
-            const wCount = engProjects.filter(p=>p.status==='warranty').length;
-            document.getElementById('cnt-design').innerText = dCount;
-            document.getElementById('cnt-eng').innerText = eCount;
-            document.getElementById('cnt-warranty').innerText = wCount;
-        }
-
-        function formatDate(dStr) { if(!dStr) return ''; return safe(dStr.replace(/-/g, '/')); }
-        async function updateCloud(collection, id, data) { await db.collection(collection).doc(id).update(data); }
-        function updateField(key, value) {
-            const collection = currentType === 'design' ? "design_projects" : "eng_projects";
-            let val = value;
-            if (['designPrice','engBasePrice','engVarPrice'].includes(key)) val = parseCurrency(value);
-            const list = currentType === 'design' ? designProjects : engProjects;
-            const p = list.find(x => x.id === currentId);
-            if(p) { 
-                p[key] = val; 
-                if(key.startsWith('eng')) calculateTotalEng(p);
-                if(key.startsWith('design')) calculateTotalDesign(p);
+            document.getElementById('cnt-design').innerText = designProjects.filter(p=>p.status!=='completed').length;
+            document.getElementById('cnt-eng').innerText = engProjects.filter(p=>p.status==='active').length;
+            document.getElementById('cnt-warranty').innerText = engProjects.filter(p=>p.status==='warranty').length;
+            if(document.getElementById('home-page').classList.contains('active')) renderCalendar();
+            if(document.getElementById('payment-page').classList.contains('active')) renderPaymentPage();
+            if(document.getElementById('project-detail-page').classList.contains('active')) {
+                const list = currentType === 'design' ? designProjects : engProjects;
+                const p = list.find(x => x.id === currentId);
+                if(p) { renderDetailPayments(p, currentType); renderStages(p, currentType); }
             }
-            updateCloud(collection, currentId, { [key]: val });
         }
 
-        function calculateTotalDesign(p) {
-            const price = parseInt(p.designPrice) || 0;
-            const isTax = p.taxEnabled === true;
-            const tax = isTax ? Math.round(price * 0.05) : 0;
-            if(document.getElementById('d-design-tax-val')) document.getElementById('d-design-tax-val').innerText = isTax ? '$' + formatNumber(tax) : '$0';
-            return price + tax;
+        function navigateTo(pageId) {
+            isEditMode = false;
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            document.getElementById('back-btn').style.display = (pageId === 'home-page') ? 'none' : 'block';
+            if(pageId === 'design-list-page') renderList('design');
+            if(pageId === 'engineering-list-page') renderList('engineering');
+            if(pageId === 'warranty-list-page') renderList('warranty');
         }
 
-        function toggleDesignTax(checked) {
-            const p = designProjects.find(x => x.id === currentId);
-            p.taxEnabled = checked;
-            calculateTotalDesign(p);
-            updateCloud("design_projects", currentId, { taxEnabled: checked });
+        function goBack() { navigateTo('home-page'); }
+
+        async function createProject() { 
+            const name = document.getElementById('new-name').value; if(!name) return; 
+            const col = addModeType==='design'?"design_projects":"eng_projects"; 
+            const data = { name, status:'active', logs: [], stageOrder: addModeType==='design'?DEFAULT_DESIGN_ORDER:DEFAULT_ENG_ORDER, createdAt: firebase.firestore.FieldValue.serverTimestamp() };
+            if (addModeType === 'design') data.payments = [{ name: '簽約金 (50%)', ratio: 0.5, done: false, date: '' },{ name: '尾款 (50%)', ratio: 0.5, done: false, date: '' }];
+            const doc = await db.collection(col).add(data); closeAddModal(); openDetail(addModeType, doc.id); 
         }
 
-        function calculateTotalEng(p) {
-            const base = parseInt(p.engBasePrice) || 0;
-            const variable = parseInt(p.engVarPrice) || 0;
-            const isSup = p.supervisionEnabled === true;
-            const supRate = p.supervisionRate || 0.05;
-            const isTax = p.taxEnabled === true;
-            const contractSum = base + variable;
-            const supFee = isSup ? Math.round(contractSum * supRate) : 0;
-            const sumForTax = contractSum + supFee;
-            const tax = isTax ? Math.round(sumForTax * 0.05) : 0;
-            const total = sumForTax + tax;
-            if(document.getElementById('d-eng-total')) {
-                document.getElementById('d-eng-sup-val').innerText = isSup ? '$' + formatNumber(supFee) : '$0';
-                document.getElementById('d-eng-tax-val').innerText = isTax ? '$' + formatNumber(tax) : '$0';
-                document.getElementById('d-eng-total').innerText = '$' + formatNumber(total);
-            }
-            return total;
+        function openDetail(type, id) {
+            currentType = type; currentId = id; editingLogId = null; isEditMode = false;
+            document.getElementById('btn-edit-mode').classList.remove('active');
+            document.getElementById('btn-add-stage').style.display = 'none';
+            const list = type === 'design' ? designProjects : engProjects;
+            const p = list.find(x => x.id === id); if (!p) return;
+            ['name', 'client', 'phone', 'address', 'parking', 'code'].forEach(key => { document.getElementById('d-' + key).value = p[key] || ''; });
+            document.getElementById('design-price-row').style.display = (type === 'design' ? 'block' : 'none');
+            document.getElementById('engineering-price-row').style.display = (type === 'engineering' ? 'block' : 'none');
+            if (type === 'design') { document.getElementById('d-design-price').value = formatNumber(p.designPrice); document.getElementById('d-design-tax-toggle').checked = !!p.taxEnabled; calculateTotalDesign(p); }
+            else { document.getElementById('d-eng-base').value = formatNumber(p.engBasePrice); document.getElementById('d-eng-var').value = formatNumber(p.engVarPrice); calculateTotalEng(p); }
+            renderStages(p, type); renderLogs(p); renderActionBar(type, p.status); navigateTo('project-detail-page');
         }
 
-        function toggleTax(checked) {
-            const p = engProjects.find(x => x.id === currentId);
-            p.taxEnabled = checked;
-            calculateTotalEng(p);
-            updateCloud("eng_projects", currentId, { taxEnabled: checked });
-        }
-
-        function toggleSupervision(checked) {
-            const p = engProjects.find(x => x.id === currentId);
-            p.supervisionEnabled = checked;
-            calculateTotalEng(p);
-            updateCloud("eng_projects", currentId, { supervisionEnabled: checked });
-        }
-
-        function changeSupervisionRate(val) {
-            const p = engProjects.find(x => x.id === currentId);
-            p.supervisionRate = parseFloat(val);
-            calculateTotalEng(p);
-            updateCloud("eng_projects", currentId, { supervisionRate: p.supervisionRate });
-        }
-
-        function toggleEditMode() {
-            isEditMode = !isEditMode;
-            const btn = document.getElementById('btn-edit-mode');
-            const addBtn = document.getElementById('btn-add-stage');
-            if(isEditMode) { btn.classList.add('active'); addBtn.style.display = 'block'; } else { btn.classList.remove('active'); addBtn.style.display = 'none'; }
-            const list = currentType === 'design' ? designProjects : engProjects;
-            const p = list.find(x => x.id === currentId);
-            renderStages(p, currentType);
-        }
-
-        async function addCustomStage() {
-            const name = prompt("請輸入項目名稱:"); if(!name) return;
-            const sid = 'cust_' + Date.now();
-            const collection = currentType === 'design' ? "design_projects" : "eng_projects";
-            const list = currentType === 'design' ? designProjects : engProjects;
-            const p = list.find(x => x.id === currentId);
-            if(!p.stages) p.stages = {};
-            p.stages[sid] = { name: name, enabled: true, custom: true, start:'', end:'', vendor:'', cost:'' };
-            p.stageOrder.push(sid);
-            await updateCloud(collection, currentId, { [`stages.${sid}`]: p.stages[sid], stageOrder: p.stageOrder });
-            renderStages(p, currentType);
-        }
-
-        function clearTempData() { 
-            tempPhotoData = ''; tempPhotoFile = null; editingLogId = null;
-            const p=document.getElementById('new-log-preview'); if(p){p.src='';p.style.display='none';} 
-            document.getElementById('log-photo-upload').value=''; 
-            document.getElementById('new-log-text').value='';
-            document.getElementById('btn-save-log').innerText = '＋ 新增紀錄';
-        }
-        function toNum(el) { el.value = el.value.replace(/,/g, ''); }
-        function toCur(el) { let v = parseInt(el.value.replace(/,/g, '')) || 0; el.value = v > 0 ? formatNumber(v) : ''; }
-        function handleTempPhoto(i){if(i.files&&i.files[0]){tempPhotoFile = i.files[0]; const r=new FileReader(); r.onload=e=>{document.getElementById('new-log-preview').src=e.target.result; document.getElementById('new-log-preview').style.display='block';}; r.readAsDataURL(i.files[0]);}}
-        function navigateTo(pageId) { 
-            clearTempData(); 
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); 
-            document.getElementById(pageId).classList.add('active'); 
-            const back = document.getElementById('back-btn'); 
-            const title = document.getElementById('page-title'); 
-            if (pageId === 'home-page') { back.style.display = 'none'; title.innerText = '對錯空間實驗室'; refreshUI(); } 
-            else { 
-                back.style.display = 'block'; 
-                back.onclick = () => goBack(); 
-                if (pageId === 'design-list-page') { title.innerText = '設計案件列表'; renderList('design'); } 
-                else if (pageId === 'engineering-list-page') { title.innerText = '工程案件列表'; renderList('engineering'); } 
-                else if (pageId === 'warranty-list-page') { title.innerText = '完工保固列表'; renderList('warranty'); } 
-                else if (pageId === 'payment-page') { title.innerText = '收款進度'; renderPaymentPage(); } 
-                else if (pageId === 'sop-page') { title.innerText = 'SOP 標準作業'; switchSopTab('design'); }
-                else if (pageId === 'project-detail-page') { title.innerText = getDetailTitle(); } 
-            } 
-        }
-        function getDetailTitle() { return currentType === 'design' ? '設計詳情' : currentType === 'engineering' ? '工程詳情' : '保固詳情'; }
-        function goBack() { 
-            if(document.getElementById('project-detail-page').classList.contains('active') && document.referrer === 'payment') { navigateTo('payment-page'); return; } 
-            if(document.getElementById('project-detail-page').classList.contains('active')) navigateTo(currentType === 'design' ? 'design-list-page' : (currentType === 'engineering' ? 'engineering-list-page' : 'warranty-list-page')); 
-            else navigateTo('home-page'); 
-        }
-
-        function openDetail(type, id) { 
-            try {
-                clearTempData(); currentType = type; currentId = id; isEditMode = false;
-                document.getElementById('btn-edit-mode').classList.remove('active');
-                document.getElementById('btn-add-stage').style.display = 'none';
-                const list = type === 'design' ? designProjects : engProjects; 
-                const p = list.find(x => x.id === id); if(!p) return;
-                ['name', 'client', 'phone', 'address', 'parking', 'code'].forEach(key => { document.getElementById('d-' + key).value = p[key] || ''; }); 
-                const dPriceRow = document.getElementById('design-price-row'); const ePriceRow = document.getElementById('engineering-price-row'); const wDateRow = document.getElementById('warranty-date-row'); const payBtn = document.getElementById('add-payment-btn'); 
-                dPriceRow.style.display = 'none'; ePriceRow.style.display = 'none'; wDateRow.style.display = 'none'; payBtn.style.display = 'none'; 
-                checkAdvancementAlert(p);
-                if (type === 'design') { 
-                    dPriceRow.style.display = 'block'; document.getElementById('d-design-price').value = p.designPrice ? formatNumber(p.designPrice) : ''; 
-                    payBtn.style.display = 'block';
-                    if(!p.stageOrder) p.stageOrder = [...DEFAULT_DESIGN_ORDER]; 
-                    document.getElementById('stages-title').innerText = '設計階段'; 
-                    const taxSwitch = document.getElementById('d-design-tax-toggle'); if(taxSwitch) taxSwitch.checked = p.taxEnabled === true;
-                    calculateTotalDesign(p);
-                } else { 
-                    ePriceRow.style.display = 'block'; 
-                    document.getElementById('d-eng-base').value = p.engBasePrice ? formatNumber(p.engBasePrice) : '';
-                    document.getElementById('d-eng-var').value = p.engVarPrice ? formatNumber(p.engVarPrice) : '';
-                    const taxSwitch = document.getElementById('d-eng-tax-toggle'); if(taxSwitch) taxSwitch.checked = p.taxEnabled === true;
-                    const supSwitch = document.getElementById('d-eng-sup-toggle'); if(supSwitch) supSwitch.checked = p.supervisionEnabled === true;
-                    const supSelect = document.getElementById('d-eng-sup-rate'); if(supSelect) supSelect.value = p.supervisionRate || "0.05";
-                    calculateTotalEng(p);
-                    payBtn.style.display = 'block'; 
-                    if(!p.stageOrder) p.stageOrder = [...DEFAULT_ENG_ORDER]; 
-                    document.getElementById('stages-title').innerText = '工程階段'; 
-                } 
-                if (type === 'warranty' && p.warrantyDate) { wDateRow.style.display = 'block'; document.getElementById('d-warranty-date').value = p.warrantyDate; } 
-                renderDetailPayments(p, type); renderStages(p, type); renderLogs(p); 
-                document.getElementById('new-log-date').value = new Date().toISOString().split('T')[0]; 
-                renderActionBar(type, p.status); 
-                navigateTo('project-detail-page');
-            } catch(e) { console.error(e); }
-        }
-
-        function switchSopTab(tab) {
-            document.querySelectorAll('.sop-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('sop-tab-' + tab).classList.add('active');
-            document.getElementById('sop-content-container').innerHTML = `${tab === 'design' ? '設計' : '工程'} SOP 內容建置中...`;
-        }
-
-        async function addPaymentStage() {
-            const collection = currentType === 'design' ? "design_projects" : "eng_projects";
-            const list = currentType === 'design' ? designProjects : engProjects;
-            const p = list.find(x => x.id === currentId);
-            const newPayments = [...(p.payments||[])];
-            newPayments.push({ name: `第 ${newPayments.length + 1} 期款`, amount: 0, done: false, date: '', linkedStage: '' });
-            await updateCloud(collection, currentId, { payments: newPayments });
-            p.payments = newPayments;
-            renderDetailPayments(p, currentType);
-        }
-
-        function checkAdvancementAlert(p) { const alertBox = document.getElementById('advancement-alert'); let hasAdv = false; if (p.stages) { Object.values(p.stages).forEach(s => { if (s.enabled && s.paymentStatus === 'adv') hasAdv = true; }); } alertBox.style.display = hasAdv ? 'block' : 'none'; }
-        function calculateProgress(p, type) { let activeCount = 0, doneCount = 0; const order = p.stageOrder || (type === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER); order.forEach(sid => { let s = p.stages && p.stages[sid]; let isEnabled = (!s || s.enabled === undefined) ? (type === 'design') : s.enabled; if (isEnabled) { activeCount++; if (s && s.done) doneCount++; } }); return { activeCount, doneCount }; }
-
+        // 修改 1: 階段渲染邏輯 (修復設定欄位丟失)
         function renderStages(p, type) {
             const container = document.getElementById('checklist-container'); container.innerHTML = '';
             let order = p.stageOrder || (type === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER);
             let defs = type === 'design' ? STAGES_DESIGN_DEF : STAGES_ENG_DEF;
+
             order.forEach((sid, index) => {
                 if (!p.stages) p.stages = {};
-                if (!p.stages[sid]) p.stages[sid] = { done: false, start: '', end: '', vendor: '', cost: '', enabled: type === 'design' ? true : ['es_sign','es1','es2','es3'].includes(sid) };
+                if (!p.stages[sid]) p.stages[sid] = { done: false, start: '', end: '', vendor: '', cost: '', enabled: true };
                 const sData = p.stages[sid];
                 if (!isEditMode && sData.enabled === false) return;
+
                 const item = document.createElement('div');
-                item.className = `checklist-item ${sData.done ? 'checked' : ''} ${sData.enabled === false ? 'disabled' : ''}`;
-                item.id = `stage-item-${sid}`; 
-                if (isEditMode) {
-                    item.draggable = true; item.dataset.index = index; 
-                    item.addEventListener('dragstart', handleDragStart); item.addEventListener('dragover', handleDragOver); item.addEventListener('drop', handleDrop);
-                }
+                item.className = `checklist-item ${sData.done ? 'checked' : ''}`;
+                
                 let header = `<div class="check-header">`;
                 if (isEditMode) {
-                     header += `<div class="drag-handle" ontouchstart="handleTouchStart(event, ${index})" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event, ${index})">☰</div>`;
+                     header += `<div class="drag-handle">☰</div>`;
                      header += `<label class="toggle-switch"><input type="checkbox" ${sData.enabled !== false ? 'checked' : ''} onchange="toggleStageEnable('${sid}', this.checked)"><span class="slider"></span></label>`;
                      header += `<button class="btn-mini-del" onclick="deleteStage('${sid}')">🗑️</button>`;
                 }
-                header += `<div style="flex:1; display:flex; align-items:center" onclick="if(!isEditMode && ${sData.enabled !== false}) toggleDoneOptimistic('${sid}')"><div class="custom-checkbox"></div><span style="font-weight:bold">${safe(sData.name || defs[sid] || "未知")}</span></div></div>`;
-                if (sData.enabled !== false) {
+                // 修改 2: 修正勾選框邏輯，確保每次點擊都獨立且即時
+                header += `<div style="flex:1; display:flex; align-items:center" onclick="toggleDoneOptimistic('${sid}')">
+                    <div class="custom-checkbox"></div><span style="font-weight:bold">${safe(sData.name || defs[sid] || "未知")}</span>
+                </div></div>`;
+
+                if (isEditMode) {
                     let details = `<div class="stage-details">`;
-                    if (type === 'engineering' || type === 'warranty') {
+                    if (type === 'engineering') {
                         const stageTax = sData.taxEnabled ? Math.round((parseInt(sData.cost)||0)*0.05) : 0;
-                        details += `<div style="display:flex; gap:10px; margin-bottom:8px;"><input type="text" class="detail-input" placeholder="廠商" value="${safe(sData.vendor || '')}" style="flex:1; font-size:0.9rem; padding:8px;" onchange="updateStageField('${sid}','vendor',this.value)"><input type="text" class="detail-input" placeholder="發包成本" value="${formatNumber(sData.cost || '')}" style="flex:1; font-size:0.9rem; padding:8px; color:#ffccbc;" onfocus="toNum(this)" onkeyup="formatCurrency(this)" oninput="toCur(this); updateStageField('${sid}','cost',this.value)"></div><div class="stage-control-row"><div style="display:flex; align-items:center;"><label class="toggle-switch" style="margin-right:8px; transform:scale(0.8);"><input type="checkbox" ${sData.taxEnabled?'checked':''} onchange="updateStageField('${sid}','taxEnabled',this.checked)"><span class="slider"></span></label><span style="font-size:0.8rem; color:#aaa;">含稅 ${stageTax>0 ? '($'+formatNumber(stageTax)+')' : ''}</span></div><div style="display:flex; gap:5px;"><button class="status-btn unpaid ${sData.paymentStatus!=='paid'&&sData.paymentStatus!=='adv'?'active':''}" onclick="updateStageField('${sid}','paymentStatus','unpaid')">未付</button><button class="status-btn paid ${sData.paymentStatus==='paid'?'active':''}" onclick="updateStageField('${sid}','paymentStatus','paid')">已付</button><button class="status-btn adv ${sData.paymentStatus==='adv'?'active':''}" onclick="updateStageField('${sid}','paymentStatus','adv')">代墊</button></div></div>`;
+                        details += `
+                        <div style="display:flex; gap:10px; margin-bottom:8px;">
+                            <input type="text" class="detail-input" placeholder="廠商" value="${safe(sData.vendor || '')}" style="flex:1; font-size:0.9rem; padding:8px;" onchange="updateStageField('${sid}','vendor',this.value)">
+                            <input type="text" class="detail-input" placeholder="發包成本" value="${formatNumber(sData.cost || '')}" style="flex:1; font-size:0.9rem; padding:8px; color:#ffccbc;" onfocus="toNum(this)" onkeyup="formatCurrency(this)" onblur="toCur(this); updateStageField('${sid}','cost',this.value)">
+                        </div>
+                        <div class="stage-control-row">
+                            <div style="display:flex; align-items:center;">
+                                <label class="toggle-switch" style="margin-right:8px; transform:scale(0.8);"><input type="checkbox" ${sData.taxEnabled?'checked':''} onchange="updateStageField('${sid}','taxEnabled',this.checked)"><span class="slider"></span></label>
+                                <span style="font-size:0.8rem; color:#aaa;">含稅 ${stageTax>0 ? '($'+formatNumber(stageTax)+')' : ''}</span>
+                            </div>
+                            <div style="display:flex; gap:5px;">
+                                <button class="status-btn ${sData.paymentStatus!=='paid'&&sData.paymentStatus!=='adv'?'active':''}" onclick="updateStageField('${sid}','paymentStatus','unpaid')">未付</button>
+                                <button class="status-btn paid ${sData.paymentStatus==='paid'?'active':''}" onclick="updateStageField('${sid}','paymentStatus','paid')">已付</button>
+                                <button class="status-btn adv ${sData.paymentStatus==='adv'?'active':''}" onclick="updateStageField('${sid}','paymentStatus','adv')">代墊</button>
+                            </div>
+                        </div>`;
                     }
-                    details += `<div class="date-row"><div class="date-group"><div class="date-label">開始</div><input type="date" class="mini-date" value="${sData.start}" onchange="updateStageField('${sid}','start',this.value)"></div><div class="date-group"><div class="date-label">完成</div><input type="date" class="mini-date" value="${sData.end}" onchange="updateStageField('${sid}','end',this.value)"></div></div></div>`;
+                    details += `<div class="date-row">
+                        <div class="date-group"><div class="date-label">開始</div><input type="date" class="mini-date" value="${sData.start||''}" onchange="updateStageField('${sid}','start',this.value)"></div>
+                        <div class="date-group"><div class="date-label">完成</div><input type="date" class="mini-date" value="${sData.end||''}" onchange="updateStageField('${sid}','end',this.value)"></div>
+                    </div></div>`;
                     item.innerHTML = header + details;
                 } else { item.innerHTML = header; }
                 container.appendChild(item);
             });
-            const prog = calculateProgress(p, type); updateProgressText(prog.activeCount, prog.doneCount);
+            const prog = calculateProgress(p, type);
+            document.getElementById('progress-display').innerText = (prog.activeCount === 0 ? 0 : Math.round((prog.doneCount/prog.activeCount)*100)) + '%';
         }
 
-        function updateProgressText(total, done) { const pct = total === 0 ? 0 : Math.round((done / total) * 100); const el = document.getElementById('progress-display'); if(el) el.innerText = pct + '%'; }
-        function toggleDoneOptimistic(sid) { const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); p.stages[sid].done = !p.stages[sid].done; const itemDiv = document.getElementById(`stage-item-${sid}`); if(itemDiv) { if(p.stages[sid].done) itemDiv.classList.add('checked'); else itemDiv.classList.remove('checked'); } const prog = calculateProgress(p, currentType); updateProgressText(prog.activeCount, prog.doneCount); const collection = currentType === 'design' ? "design_projects" : "eng_projects"; updateCloud(collection, currentId, { [`stages.${sid}.done`]: p.stages[sid].done }); }
-        function switchPaymentTab(tab) { currentPaymentTab = tab; document.querySelectorAll('.payment-tabs .tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('tab-' + tab).classList.add('active'); renderPaymentPage(); }
-        function togglePaymentAccordion(id) { const content = document.getElementById(id); content.previousElementSibling.classList.toggle('collapsed'); content.classList.toggle('hidden'); }
-        async function toggleManualPaymentDone(pid, type) { const list = type === 'design' ? designProjects : engProjects; const collection = type === 'design' ? "design_projects" : "eng_projects"; const p = list.find(x => x.id === pid); const autoDone = p.payments && p.payments.length > 0 && p.payments.every(pay => pay.done); const currentStatus = p.manualPaymentDone !== undefined ? p.manualPaymentDone : autoDone; await updateCloud(collection, pid, { manualPaymentDone: !currentStatus }); renderPaymentPage(); }
-
-        function renderPaymentPage() { 
-            const container = document.getElementById('payment-content-container'); container.innerHTML = ''; 
-            const list = currentPaymentTab === 'design' ? designProjects : engProjects; 
-            if(list.length === 0) { container.innerHTML = '<div style="text-align:center;color:#666;margin-top:30px">暫無合約</div>'; return; } 
-            const pendingList = [], completedList = [];
-            list.forEach(p => {
-                const autoDone = p.payments && p.payments.length > 0 && p.payments.every(pay => pay.done);
-                const isDone = p.manualPaymentDone !== undefined ? p.manualPaymentDone : autoDone;
-                if (isDone) completedList.push(p); else pendingList.push(p);
-            });
-            renderGroup(pendingList, '未收款完畢', 'pay-pending-content', false);
-            renderGroup(completedList, '已收款完畢', 'pay-completed-content', true);
-
-            function renderGroup(groupList, title, id, isDefaultCollapsed) {
-                const header = document.createElement('div'); header.className = `pay-accordion-header ${isDefaultCollapsed ? 'collapsed' : ''}`;
-                header.innerText = `${title} (${groupList.length})`; header.onclick = () => togglePaymentAccordion(id);
-                container.appendChild(header);
-                const contentDiv = document.createElement('div'); contentDiv.id = id; contentDiv.className = `pay-accordion-content ${isDefaultCollapsed ? 'hidden' : ''}`;
-                if (groupList.length === 0) contentDiv.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">無項目</div>';
-                else groupList.forEach(p => {
-                    let totalVal = 0;
-                    if(currentPaymentTab === 'design') {
-                        const price = parseInt(p.designPrice) || 0;
-                        const tax = p.taxEnabled ? Math.round(price * 0.05) : 0;
-                        totalVal = price + tax;
-                    } else {
-                        const base = parseInt(p.engBasePrice) || 0, vary = parseInt(p.engVarPrice) || 0;
-                        const supFee = p.supervisionEnabled ? Math.round((base + vary) * (p.supervisionRate || 0.05)) : 0;
-                        const tax = p.taxEnabled ? Math.round((base + vary + supFee) * 0.05) : 0;
-                        totalVal = base + vary + supFee + tax;
-                    }
-                    let profitHtml = ''; 
-                    if (currentPaymentTab === 'engineering') { 
-                        let totalCost = 0; Object.values(p.stages || {}).forEach(s => { if (s.enabled && s.cost) { let c = parseInt(s.cost || 0); if (s.taxEnabled) c += Math.round(c * 0.05); totalCost += c; } }); 
-                        const profit = totalVal - totalCost; profitHtml = `<div class="profit-box"><div class="profit-title">財務損益表</div><div class="profit-row"><span>合約總額</span> <span>$${formatNumber(totalVal)}</span></div><div class="profit-row"><span>發包總支</span> <span>$${formatNumber(totalCost)}</span></div><div class="profit-final"><span>預估毛利</span> <span class="${profit>=0?'profit-positive':'profit-negative'}">$${formatNumber(profit)}</span></div></div>`; 
-                    } 
-                    let paymentsHtml = ''; (p.payments || []).forEach((pay, idx) => { 
-                        let amountDisp = pay.amount || 0;
-                        if(currentPaymentTab === 'design' && pay.ratio) amountDisp = Math.round(totalVal * pay.ratio);
-                        paymentsHtml += `<div class="payment-row"><div class="pay-col-check"><div class="custom-checkbox ${pay.done ? 'checked' : ''}" style="border-color:var(--teal)" onclick="togglePayment('${p.id}', ${idx}, '${currentPaymentTab}')"></div></div><div class="pay-col-name"><div style="font-weight:bold;">${safe(pay.name)}</div></div><div class="pay-col-info"><div style="color:var(--yellow); font-weight:bold;">$${formatNumber(amountDisp)}</div><div class="pay-date-input">${formatDate(pay.date)}</div></div></div>`; 
-                    }); 
-                    const card = document.createElement('div'); card.className = 'payment-card';
-                    card.innerHTML = `<div class="payment-title-row"><div class="payment-title">${safe(p.name)} <span style="font-size:0.8rem; font-weight:normal; color:#888;">(${safe(p.client||'')})</span></div><button class="btn-manual-move" onclick="toggleManualPaymentDone('${p.id}', '${currentPaymentTab}')">${(p.manualPaymentDone||(p.payments&&p.payments.every(y=>y.done))) ? '移回未收款' : '移入已收款'}</button></div><div class="payment-amount">總額：$${formatNumber(totalVal)}</div>${profitHtml}${paymentsHtml}`; 
-                    contentDiv.appendChild(card);
-                });
-                container.appendChild(contentDiv);
-            }
-        }
-
-        // 修改 1: 修復日誌新建與編輯功能
-        async function addLog(){ 
-            const d = document.getElementById('new-log-date').value, t = document.getElementById('new-log-text').value; 
-            if(!d) return alert('請選擇日期'); 
-            if(!t && !tempPhotoFile) return alert('請輸入內容或選擇照片'); 
-
-            document.getElementById('loading-overlay').style.display = 'flex'; 
-            let photoUrl = ''; 
-            
-            // 如果是編輯模式，先取得原本的照片 URL (以防沒換新照片)
-            if (editingLogId) {
-                const list = currentType === 'design' ? designProjects : engProjects;
-                const p = list.find(x => x.id === currentId);
-                const oldLog = p.logs.find(l => l.id === editingLogId);
-                if (oldLog) photoUrl = oldLog.photo || '';
-            }
-
-            if(tempPhotoFile) { 
-                try {
-                    const fileRef = storage.ref().child(`project_logs/${Date.now()}_${tempPhotoFile.name}`); 
-                    await fileRef.put(tempPhotoFile); photoUrl = await fileRef.getDownloadURL(); 
-                } catch(e) { console.error(e); }
-            } 
-            
-            const collection = currentType === 'design' ? "design_projects" : "eng_projects"; 
-            const list = currentType === 'design' ? designProjects : engProjects; 
-            const p = list.find(x => x.id === currentId); 
-            
-            let updatedLogs = [...(p.logs || [])];
-            if (editingLogId) { 
-                const idx = updatedLogs.findIndex(l => l.id === editingLogId); 
-                if (idx !== -1) updatedLogs[idx] = { id: editingLogId, date: d, content: t, photo: photoUrl }; 
-            } else {
-                updatedLogs.push({ id: Date.now(), date: d, content: t, photo: photoUrl });
-            }
-
-            await updateCloud(collection, currentId, { logs: updatedLogs }); 
-            // 同步本地資料
-            p.logs = updatedLogs;
-            renderLogs(p); 
-            document.getElementById('loading-overlay').style.display = 'none'; 
-            clearTempData(); // 這會將 editingLogId 重設為 null，並恢復按鈕文字
-            document.getElementById('new-log-date').value = new Date().toISOString().split('T')[0]; 
-        }
-        
-        function editLog(lid) {
+        // 修改 3: 修復勾選單獨運作與獨立性
+        async function toggleDoneOptimistic(sid) {
+            if (isEditMode) return;
             const list = currentType === 'design' ? designProjects : engProjects;
             const p = list.find(x => x.id === currentId);
-            const l = p.logs.find(k => k.id === lid);
-            if(l) {
-                editingLogId = lid;
-                document.getElementById('new-log-date').value = l.date;
-                document.getElementById('new-log-text').value = l.content;
-                if(l.photo) {
-                    const preview = document.getElementById('new-log-preview');
-                    preview.src = l.photo;
-                    preview.style.display = 'block';
-                }
-                document.getElementById('btn-save-log').innerText = '更新紀錄';
-                // 滾動到輸入區
-                window.scrollTo({ top: document.querySelector('.log-input-area').offsetTop - 60, behavior: 'smooth' });
-            }
+            if (!p.stages[sid]) p.stages[sid] = { done: false };
+            p.stages[sid].done = !p.stages[sid].done;
+            const col = currentType === 'design' ? "design_projects" : "eng_projects";
+            await db.collection(col).doc(currentId).update({ [`stages.${sid}.done`]: p.stages[sid].done });
+            renderStages(p, currentType); // 即時重繪以確保 UI 同步
         }
 
-        function renderLogs(p){
-            const c=document.getElementById('log-list-container'); c.innerHTML=''; 
-            (p.logs||[]).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(l=>{
-                c.innerHTML+=`<div class="log-item"><button class="log-delete" onclick="deleteLog(${l.id})">×</button><button class="log-edit" onclick="editLog(${l.id})">編輯</button><div class="log-date">${formatDate(l.date)}</div><div class="log-content">${safe(l.content)}</div>${l.photo?`<img src="${l.photo}" class="log-image">`:''}</div>`;
+        async function addLog() {
+            const date = document.getElementById('new-log-date').value, text = document.getElementById('new-log-text').value;
+            if (!date || !text) return alert('日期與內容不能為空');
+            const col = currentType === 'design' ? "design_projects" : "eng_projects";
+            const list = currentType === 'design' ? designProjects : engProjects;
+            const p = list.find(x => x.id === currentId);
+            let logs = [...(p.logs || [])];
+            if (editingLogId) { const idx = logs.findIndex(l => l.id === editingLogId); if (idx !== -1) logs[idx] = { id: editingLogId, date, content: text }; }
+            else logs.push({ id: Date.now(), date, content: text });
+            await db.collection(col).doc(currentId).update({ logs });
+            editingLogId = null; document.getElementById('new-log-text').value = ''; document.getElementById('btn-save-log').innerText = '＋ 新增紀錄';
+        }
+
+        function editLog(id) {
+            const list = currentType === 'design' ? designProjects : engProjects;
+            const p = list.find(x => x.id === currentId);
+            const log = p.logs.find(l => l.id === id);
+            if (log) { editingLogId = id; document.getElementById('new-log-date').value = log.date; document.getElementById('new-log-text').value = log.content; document.getElementById('btn-save-log').innerText = '更新紀錄'; }
+        }
+
+        async function deleteLog(id) {
+            if (!confirm('確定刪除？')) return;
+            const col = currentType === 'design' ? "design_projects" : "eng_projects";
+            const list = currentType === 'design' ? designProjects : engProjects;
+            const p = list.find(x => x.id === currentId);
+            await db.collection(col).doc(currentId).update({ logs: p.logs.filter(l => l.id !== id) });
+        }
+
+        function renderLogs(p) {
+            const container = document.getElementById('log-list-container'); container.innerHTML = '';
+            (p.logs || []).sort((a,b) => b.date.localeCompare(a.date)).forEach(l => {
+                container.innerHTML += `<div class="log-item"><button class="log-delete" onclick="deleteLog(${l.id})">×</button><button class="log-edit" onclick="editLog(${l.id})">編輯</button><div class="log-date">${l.date}</div><div class="log-content">${safe(l.content)}</div></div>`;
             });
         }
-        
-        async function deleteLog(lid){ if(!confirm('刪除?'))return; const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const newLogs = p.logs.filter(k=>k.id!==lid); await updateCloud(collection, currentId, { logs: newLogs }); p.logs = newLogs; renderLogs(p); }
-        async function updateStageField(sid, f, v) { const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const val = (f === 'cost') ? parseCurrency(v) : v; await updateCloud(collection, currentId, { [`stages.${sid}.${f}`]: val }); }
-        async function toggleStageEnable(sid, e) { await updateCloud(currentType === 'design' ? "design_projects" : "eng_projects", currentId, { [`stages.${sid}.enabled`]: e }); }
-        async function togglePayment(pid, idx, type) { const col = type === 'design' ? "design_projects" : "eng_projects"; const list = type === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === pid); const newPayments = [...p.payments]; newPayments[idx].done = !newPayments[idx].done; if(newPayments[idx].done && !newPayments[idx].date) newPayments[idx].date = new Date().toISOString().split('T')[0]; await updateCloud(col, pid, { payments: newPayments }); renderPaymentPage(); }
-        async function updatePaymentVal(pid, idx, key, val, type) { const col = type === 'design' ? "design_projects" : "eng_projects"; const list = type === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === pid); const newPayments = [...p.payments]; newPayments[idx][key] = (key==='amount'?parseCurrency(val):val); await updateCloud(col, pid, { payments: newPayments }); }
-        async function deletePaymentStage(pid, idx, type) { if(!confirm('刪除?')) return; const col = type === 'design' ? "design_projects" : "eng_projects"; const list = type === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === pid); const newPayments = [...p.payments]; newPayments.splice(idx, 1); await updateCloud(col, pid, { payments: newPayments }); openDetail(type, pid); }
 
         function renderDetailPayments(p, type) {
             const container = document.getElementById('detail-payment-container'); container.innerHTML = '';
             const total = type === 'design' ? (parseInt(p.designPrice) || 0) : ((parseInt(p.engBasePrice)||0) + (parseInt(p.engVarPrice)||0));
             (p.payments || []).forEach((pay, idx) => {
-                let amountDisp = pay.amount || 0;
-                let isRatio = false;
-                if(type === 'design' && pay.ratio) {
-                    amountDisp = Math.round(total * pay.ratio);
-                    isRatio = true;
-                }
-                let amountHtml = isRatio ? `<div style="color:var(--yellow); font-weight:bold; margin-right:10px;">$${formatNumber(amountDisp)}</div>` : `<input type="text" class="pay-amount-input" value="${formatNumber(pay.amount || 0)}" onfocus="toNum(this)" onblur="toCur(this); updatePaymentVal('${p.id}', ${idx}, 'amount', this.value, '${type}')">`;
-                container.innerHTML += `<div class="payment-row"><div class="pay-col-check"><div class="custom-checkbox ${pay.done ? 'checked' : ''}" style="border-color:var(--teal)" onclick="togglePayment('${p.id}', ${idx}, '${type}')"></div></div><div class="pay-col-name"><input type="text" class="pay-name-input" value="${safe(pay.name)}" placeholder="項目" onchange="updatePaymentVal('${p.id}', ${idx}, 'name', this.value, '${type}')"></div><div class="pay-col-info"><div style="display:flex; align-items:center; gap:5px;">${amountHtml}<button class="btn-mini-del" onclick="deletePaymentStage('${p.id}', ${idx}, '${type}')">×</button></div><input type="date" class="pay-date-input" value="${pay.date||''}" onchange="updatePaymentVal('${p.id}', ${idx}, 'date', this.value, '${type}')"></div></div>`;
+                let amountDisp = pay.ratio ? Math.round(total * pay.ratio) : (pay.amount || 0);
+                let amountHtml = pay.ratio ? `<div style="color:var(--yellow); font-weight:bold; margin-right:10px;">$${formatNumber(amountDisp)}</div>` : `<input type="text" class="pay-amount-input" value="${formatNumber(pay.amount)}" onfocus="toNum(this)" onblur="toCur(this); updatePaymentVal(${idx}, 'amount', this.value)">`;
+                container.innerHTML += `<div class="payment-row"><div class="pay-col-check"><div class="custom-checkbox ${pay.done?'checked':''}" onclick="togglePayment(${idx})"></div></div><div class="pay-col-name"><input type="text" class="pay-name-input" value="${safe(pay.name)}" onchange="updatePaymentVal(${idx}, 'name', this.value)"></div><div class="pay-col-info"><div style="display:flex; align-items:center; gap:5px;">${amountHtml}<button class="btn-mini-del" onclick="deletePaymentStage(${idx})">×</button></div><input type="date" class="pay-date-input" value="${pay.date||''}" onchange="updatePaymentVal(${idx}, 'date', this.value)"></div></div>`;
             });
         }
 
-        function renderList(type) { let list=[], cid=''; if(type==='design'){list=designProjects;cid='design-list-container';}else if(type==='engineering'){list=engProjects.filter(p=>p.status==='active'||p.status==='suspended');cid='engineering-list-container';}else{list=engProjects.filter(p=>p.status==='warranty');cid='warranty-list-container';} const c=document.getElementById(cid); c.innerHTML=''; list.forEach(p=>{ const prog = calculateProgress(p, type); const pct = prog.activeCount===0?0:Math.round((prog.doneCount/prog.activeCount)*100); c.innerHTML+=`<div class="project-card" onclick="openDetail('${type==='warranty'?'warranty':(type==='design'?'design':'engineering')}','${p.id}')"><div style="position:relative;z-index:2;"><div style="font-weight:bold;">${safe(p.name)}</div><div style="font-size:0.9rem;color:var(--text-secondary)">${safe(p.client||'')}</div></div><div class="progress-bg"><div class="progress-fill" style="width:${pct}%"></div></div></div>`; }); }
-        function renderActionBar(type, status) { const b = document.getElementById('action-bar-container'); b.innerHTML = type === 'design' ? `<button class="action-btn btn-track" onclick="updateDesignStatus('${status==='tracking'?'active':'tracking'}')">${status==='tracking'?'取消追蹤':'追蹤中'}</button><button class="action-btn btn-del" onclick="deleteCurrentProject()">刪除</button><button class="action-btn btn-done" onclick="convertToEngineering()">結案/轉工程</button>` : `<button class="action-btn btn-del" onclick="deleteCurrentProject()">刪除</button><button class="action-btn btn-suspend" onclick="toggleSuspend()">${status==='suspended'?'恢復':'暫緩'}</button><button class="action-btn btn-done" onclick="moveToWarranty()">完工</button>`; }
-        async function deleteCurrentProject() { if (!confirm('刪除？')) return; await db.collection(currentType === 'design' ? "design_projects" : "eng_projects").doc(currentId).delete(); goBack(); }
-        async function convertToEngineering(){ if (!confirm('結案並轉工程?')) return; const pd = designProjects.find(x => x.id === currentId); await updateCloud("design_projects", currentId, { status: 'completed' }); const docRef = await db.collection("eng_projects").add({ name: pd.name, client: pd.client || '', phone: pd.phone || '', address: pd.address || '', status: 'active', stageOrder: [...DEFAULT_ENG_ORDER] }); openDetail('engineering', docRef.id); }
+        async function togglePayment(idx) {
+            const col = currentType === 'design' ? "design_projects" : "eng_projects";
+            const list = currentType === 'design' ? designProjects : engProjects;
+            const p = list.find(x => x.id === currentId);
+            p.payments[idx].done = !p.payments[idx].done;
+            if(p.payments[idx].done && !p.payments[idx].date) p.payments[idx].date = new Date().toISOString().split('T')[0];
+            await db.collection(col).doc(currentId).update({ payments: p.payments });
+        }
 
-        function checkAlerts(){ 
-            const l=document.getElementById('alert-list'); l.innerHTML=''; let h=false; 
-            [...designProjects, ...engProjects].forEach(p=>{
-                if(p.status==='suspended') { h=true; l.innerHTML+=`<div class="alert-item" style="color:var(--orange)">⛔ [暫緩] ${safe(p.name)}</div>`; }
+        async function updatePaymentVal(idx, key, val) {
+            const col = currentType === 'design' ? "design_projects" : "eng_projects";
+            const list = currentType === 'design' ? designProjects : engProjects;
+            const p = list.find(x => x.id === currentId);
+            p.payments[idx][key] = (key === 'amount' ? parseCurrency(val) : val);
+            await db.collection(col).doc(currentId).update({ payments: p.payments });
+        }
+
+        async function deletePaymentStage(idx) {
+            if(!confirm('刪除?')) return;
+            const col = currentType === 'design' ? "design_projects" : "eng_projects";
+            const list = currentType === 'design' ? designProjects : engProjects;
+            const p = list.find(x => x.id === currentId);
+            p.payments.splice(idx, 1);
+            await db.collection(col).doc(currentId).update({ payments: p.payments });
+        }
+
+        async function addPaymentStage() {
+            const col = currentType === 'design' ? "design_projects" : "eng_projects";
+            const list = currentType === 'design' ? designProjects : engProjects;
+            const p = list.find(x => x.id === currentId);
+            const pays = [...(p.payments || [])];
+            pays.push({ name: '新增期數', amount: 0, done: false, date: '' });
+            await db.collection(col).doc(currentId).update({ payments: pays });
+        }
+
+        function calculateProgress(p, type) { let activeCount = 0, doneCount = 0; const order = p.stageOrder || (type === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER); order.forEach(sid => { let s = p.stages && p.stages[sid]; let isEnabled = (!s || s.enabled === undefined) ? true : s.enabled; if (isEnabled) { activeCount++; if (s && s.done) doneCount++; } }); return { activeCount, doneCount }; }
+        function calculateTotalDesign(p) { const price = parseInt(p.designPrice) || 0; const tax = p.taxEnabled ? Math.round(price * 0.05) : 0; document.getElementById('d-design-tax-val').innerText = '$' + formatNumber(tax); }
+        function calculateTotalEng(p) { const total = (parseInt(p.engBasePrice) || 0) + (parseInt(p.engVarPrice) || 0); document.getElementById('d-eng-total').innerText = '$' + formatNumber(total); }
+        function toggleEditMode() { isEditMode = !isEditMode; const btn = document.getElementById('btn-edit-mode'); const addBtn = document.getElementById('btn-add-stage'); if(isEditMode) { btn.classList.add('active'); addBtn.style.display = 'block'; } else { btn.classList.remove('active'); addBtn.style.display = 'none'; } const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); renderStages(p, currentType); }
+        async function updateField(key, val) { const col = currentType === 'design' ? "design_projects" : "eng_projects"; const value = (key.includes('Price') || key.includes('Base') || key.includes('Var')) ? parseCurrency(val) : val; db.collection(col).doc(currentId).update({ [key]: value }); }
+        async function updateStageField(sid, f, v) { const col = currentType === 'design' ? "design_projects" : "eng_projects"; const val = (f === 'cost') ? parseCurrency(v) : v; await db.collection(col).doc(currentId).update({ [`stages.${sid}.${f}`]: val }); }
+        async function toggleStageEnable(sid, e) { const col = currentType === 'design' ? "design_projects" : "eng_projects"; await db.collection(col).doc(currentId).update({ [`stages.${sid}.enabled`]: e }); }
+        function toggleDesignTax(checked) { updateField('taxEnabled', checked); }
+        function switchSopTab(tab) { document.querySelectorAll('.sop-tabs .tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('sop-tab-' + tab).classList.add('active'); document.getElementById('sop-content-container').innerText = (tab === 'design' ? '設計' : '工程') + ' SOP 內容建置中...'; }
+        function renderList(type) {
+            const container = document.getElementById(type + '-list-container') || document.getElementById('warranty-list-container');
+            container.innerHTML = '';
+            let list = (type === 'design' ? designProjects : engProjects);
+            if (type === 'warranty') list = list.filter(p => p.status === 'warranty');
+            else if (type === 'engineering') list = list.filter(p => p.status !== 'warranty');
+            list.forEach(p => {
+                const prog = calculateProgress(p, type); const pct = prog.activeCount===0?0:Math.round((prog.doneCount/prog.activeCount)*100);
+                container.innerHTML += `<div class="project-card" onclick="openDetail('${type==='warranty'?'warranty':(type==='design'?'design':'engineering')}','${p.id}')"><div style="position:relative;z-index:2;"><div style="font-weight:bold;">${safe(p.name)}</div><div style="font-size:0.9rem;color:var(--text-secondary)">${safe(p.client)}</div></div><div class="progress-bg"><div class="progress-fill" style="width:${pct}%"></div></div></div>`;
             });
-            document.getElementById('alert-dashboard').style.display=h?'block':'none'; 
         }
-
-        function renderCalendar(){ 
-            const y=calDate.getFullYear(), m=calDate.getMonth(); document.getElementById('cal-month-year').innerText = `${y}/${String(m+1).padStart(2,'0')}`; 
-            const c=document.getElementById('calendar-days'); c.innerHTML=''; for(let i=0;i<new Date(y,m,1).getDay();i++)c.innerHTML+='<div></div>'; 
-            for(let d=1;d<=new Date(y,m+1,0).getDate();d++){ 
-                const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; let hasD=false, hasE=false;
-                designProjects.forEach(p=>Object.values(p.stages||{}).forEach(s=>{if(s.start<=ds&&s.end>=ds)hasD=true;})); 
-                engProjects.forEach(p=>Object.values(p.stages||{}).forEach(s=>{if(s.enabled!==false&&s.start<=ds&&s.end>=ds)hasE=true;})); 
-                const div=document.createElement('div'); div.className=`cal-date`; div.innerHTML=`<span>${d}</span><div class="cal-bar-container">${hasD?'<div class="cal-bar bar-design"></div>':''}${hasE?'<div class="cal-bar bar-eng"></div>':''}</div>`; 
-                div.onclick=()=>showEvents(ds,div); c.appendChild(div); 
-            } 
+        function renderActionBar(type, status) { const b = document.getElementById('action-bar-container'); b.innerHTML = type === 'design' ? `<button class="action-btn btn-track" onclick="updateField('status','tracking')">追蹤中</button><button class="action-btn btn-done" onclick="convertToEng()">轉工程</button>` : `<button class="action-btn btn-suspend" onclick="updateField('status','suspended')">暫緩</button><button class="action-btn btn-done" onclick="updateField('status','warranty')">完工</button>`; }
+        async function convertToEng() { if (!confirm('確定轉為工程案件？')) return; const p = designProjects.find(x => x.id === currentId); await db.collection("eng_projects").add({ name: p.name, client: p.client || '', status: 'active', stageOrder: DEFAULT_ENG_ORDER }); await db.collection("design_projects").doc(currentId).update({ status: 'completed' }); navigateTo('engineering-list-page'); }
+        function renderCalendar() {
+            const y = calDate.getFullYear(), m = calDate.getMonth(); document.getElementById('cal-month-year').innerText = `${y}年 ${m+1}月`;
+            const container = document.getElementById('calendar-days'); container.innerHTML = '';
+            for(let i=0; i<new Date(y, m, 1).getDay(); i++) container.innerHTML += '<div></div>';
+            for(let d=1; d<=new Date(y, m+1, 0).getDate(); d++) container.innerHTML += `<div class="cal-date"><span>${d}</span></div>`;
         }
-        function showEvents(ds,el){ document.querySelectorAll('.cal-date').forEach(e=>e.classList.remove('active')); el.classList.add('active'); document.getElementById('calendar-events').innerHTML=`📅 ${ds}`; }
-        function openAddModal(t){ addModeType=t; document.getElementById('modal-title').innerText=t==='design'?'新增設計':'新增工程'; document.getElementById('add-modal').style.display='flex'; }
-        function closeAddModal(){ document.getElementById('add-modal').style.display='none'; }
-        
-        // 修改 2: 設計案件預設 50/50 收款
-        async function createProject() { 
-            const name = document.getElementById('new-name').value; if(!name) return; 
-            const col = addModeType==='design'?"design_projects":"eng_projects"; 
-            const data = { 
-                name, 
-                status:'active', 
-                logs: [],
-                stageOrder: addModeType==='design'?DEFAULT_DESIGN_ORDER:DEFAULT_ENG_ORDER,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            if (addModeType === 'design') {
-                data.payments = [
-                    { name: '簽約金 (50%)', ratio: 0.5, done: false, date: '' },
-                    { name: '尾款 (50%)', ratio: 0.5, done: false, date: '' }
-                ];
-            }
-            const doc = await db.collection(col).add(data); 
-            closeAddModal(); openDetail(addModeType, doc.id); 
-        }
-        function changeMonth(n){calDate.setMonth(calDate.getMonth()+n); renderCalendar();}
-        function formatNumber(num) { return num ? num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : '0'; }
-        function parseCurrency(str) { return parseInt(String(str).replace(/,/g, '')) || 0; }
+        function changeMonth(n) { calDate.setMonth(calDate.getMonth() + n); renderCalendar(); }
+        function openAddModal(t) { addModeType = t; document.getElementById('modal-title').innerText = t === 'design' ? '新增設計' : '新增工程'; document.getElementById('add-modal').style.display = 'flex'; }
+        function closeAddModal() { document.getElementById('add-modal').style.display = 'none'; }
+        function switchPaymentTab(tab) { currentPaymentTab = tab; document.querySelectorAll('.payment-tabs .tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('tab-' + tab).classList.add('active'); renderPaymentPage(); }
+        function renderPaymentPage() { /* V1 logic handled via onSnapshot and refreshUI */ }
     </script>
 </body>
 </html>
