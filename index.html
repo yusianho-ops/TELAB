@@ -691,29 +691,49 @@
             }
         }
 
+        // 修改 1: 修復日誌新建與編輯功能
         async function addLog(){ 
             const d = document.getElementById('new-log-date').value, t = document.getElementById('new-log-text').value; 
-            if(!d || !t) return alert('日期與內容不能為空'); 
+            if(!d) return alert('請選擇日期'); 
+            if(!t && !tempPhotoFile) return alert('請輸入內容或選擇照片'); 
+
             document.getElementById('loading-overlay').style.display = 'flex'; 
             let photoUrl = ''; 
+            
+            // 如果是編輯模式，先取得原本的照片 URL (以防沒換新照片)
+            if (editingLogId) {
+                const list = currentType === 'design' ? designProjects : engProjects;
+                const p = list.find(x => x.id === currentId);
+                const oldLog = p.logs.find(l => l.id === editingLogId);
+                if (oldLog) photoUrl = oldLog.photo || '';
+            }
+
             if(tempPhotoFile) { 
-                const fileRef = storage.ref().child(`project_logs/${Date.now()}_${tempPhotoFile.name}`); 
-                await fileRef.put(tempPhotoFile); photoUrl = await fileRef.getDownloadURL(); 
+                try {
+                    const fileRef = storage.ref().child(`project_logs/${Date.now()}_${tempPhotoFile.name}`); 
+                    await fileRef.put(tempPhotoFile); photoUrl = await fileRef.getDownloadURL(); 
+                } catch(e) { console.error(e); }
             } 
+            
             const collection = currentType === 'design' ? "design_projects" : "eng_projects"; 
             const list = currentType === 'design' ? designProjects : engProjects; 
             const p = list.find(x => x.id === currentId); 
+            
             let updatedLogs = [...(p.logs || [])];
             if (editingLogId) { 
                 const idx = updatedLogs.findIndex(l => l.id === editingLogId); 
-                if (idx !== -1) updatedLogs[idx] = { id: editingLogId, date: d, content: t, photo: photoUrl || updatedLogs[idx].photo }; 
+                if (idx !== -1) updatedLogs[idx] = { id: editingLogId, date: d, content: t, photo: photoUrl }; 
+            } else {
+                updatedLogs.push({ id: Date.now(), date: d, content: t, photo: photoUrl });
             }
-            else updatedLogs.push({ id: Date.now(), date: d, content: t, photo: photoUrl });
+
             await updateCloud(collection, currentId, { logs: updatedLogs }); 
+            // 同步本地資料
+            p.logs = updatedLogs;
             renderLogs(p); 
             document.getElementById('loading-overlay').style.display = 'none'; 
-            clearTempData(); 
-            document.getElementById('btn-save-log').innerText = '＋ 新增紀錄';
+            clearTempData(); // 這會將 editingLogId 重設為 null，並恢復按鈕文字
+            document.getElementById('new-log-date').value = new Date().toISOString().split('T')[0]; 
         }
         
         function editLog(lid) {
@@ -724,7 +744,14 @@
                 editingLogId = lid;
                 document.getElementById('new-log-date').value = l.date;
                 document.getElementById('new-log-text').value = l.content;
+                if(l.photo) {
+                    const preview = document.getElementById('new-log-preview');
+                    preview.src = l.photo;
+                    preview.style.display = 'block';
+                }
                 document.getElementById('btn-save-log').innerText = '更新紀錄';
+                // 滾動到輸入區
+                window.scrollTo({ top: document.querySelector('.log-input-area').offsetTop - 60, behavior: 'smooth' });
             }
         }
 
@@ -735,7 +762,7 @@
             });
         }
         
-        async function deleteLog(lid){ if(!confirm('刪除?'))return; const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); await updateCloud(collection, currentId, { logs: p.logs.filter(k=>k.id!==lid) }); renderLogs(p); }
+        async function deleteLog(lid){ if(!confirm('刪除?'))return; const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const newLogs = p.logs.filter(k=>k.id!==lid); await updateCloud(collection, currentId, { logs: newLogs }); p.logs = newLogs; renderLogs(p); }
         async function updateStageField(sid, f, v) { const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const val = (f === 'cost') ? parseCurrency(v) : v; await updateCloud(collection, currentId, { [`stages.${sid}.${f}`]: val }); }
         async function toggleStageEnable(sid, e) { await updateCloud(currentType === 'design' ? "design_projects" : "eng_projects", currentId, { [`stages.${sid}.enabled`]: e }); }
         async function togglePayment(pid, idx, type) { const col = type === 'design' ? "design_projects" : "eng_projects"; const list = type === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === pid); const newPayments = [...p.payments]; newPayments[idx].done = !newPayments[idx].done; if(newPayments[idx].done && !newPayments[idx].date) newPayments[idx].date = new Date().toISOString().split('T')[0]; await updateCloud(col, pid, { payments: newPayments }); renderPaymentPage(); }
@@ -784,10 +811,18 @@
         function showEvents(ds,el){ document.querySelectorAll('.cal-date').forEach(e=>e.classList.remove('active')); el.classList.add('active'); document.getElementById('calendar-events').innerHTML=`📅 ${ds}`; }
         function openAddModal(t){ addModeType=t; document.getElementById('modal-title').innerText=t==='design'?'新增設計':'新增工程'; document.getElementById('add-modal').style.display='flex'; }
         function closeAddModal(){ document.getElementById('add-modal').style.display='none'; }
+        
+        // 修改 2: 設計案件預設 50/50 收款
         async function createProject() { 
             const name = document.getElementById('new-name').value; if(!name) return; 
             const col = addModeType==='design'?"design_projects":"eng_projects"; 
-            const data = { name, status:'active', stageOrder: addModeType==='design'?DEFAULT_DESIGN_ORDER:DEFAULT_ENG_ORDER };
+            const data = { 
+                name, 
+                status:'active', 
+                logs: [],
+                stageOrder: addModeType==='design'?DEFAULT_DESIGN_ORDER:DEFAULT_ENG_ORDER,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
             if (addModeType === 'design') {
                 data.payments = [
                     { name: '簽約金 (50%)', ratio: 0.5, done: false, date: '' },
@@ -799,7 +834,7 @@
         }
         function changeMonth(n){calDate.setMonth(calDate.getMonth()+n); renderCalendar();}
         function formatNumber(num) { return num ? num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : '0'; }
-        function parseCurrency(str) { return parseInt(str.toString().replace(/,/g, '')) || 0; }
+        function parseCurrency(str) { return parseInt(String(str).replace(/,/g, '')) || 0; }
     </script>
 </body>
 </html>
