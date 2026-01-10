@@ -260,7 +260,7 @@
         <div id="detail-sop-section" style="margin-bottom:15px;">
             <div class="sop-accordion-header collapsed" id="sop-header" onclick="togglePaymentAccordion('sop-detail-content')">專案 SOP 檢核表</div>
             <div id="sop-detail-content" class="pay-accordion-content hidden" style="background:var(--surface-color); padding:15px; border-radius:8px;">
-                <button id="sop-sync-btn" class="status-btn" style="width:100%; margin-bottom:15px; border-color:var(--orange); color:var(--orange);" onclick="syncProjectSOP()">🔄 同步標準範本</button>
+                <button id="sop-sync-btn-area" class="status-btn" style="width:100%; margin-bottom:15px; border-color:var(--orange); color:var(--orange);" onclick="syncProjectSOP()">🔄 同步標準範本</button>
                 <div id="project-sop-container"></div>
             </div>
         </div>
@@ -393,6 +393,10 @@
         let draggedItem = null, touchDragSrcIndex = null, tempPhotoFile = null;
         let isEditMode = false;
         let editingLogId = null;
+
+        // 用於記錄展開狀態的物件
+        let sopExpandedState = {};
+        let projectSopExpandedState = {};
 
         function safe(str) {
             if (!str) return '';
@@ -602,8 +606,19 @@
                 clearTempData(); currentType = type; currentId = id; isEditMode = false;
                 document.getElementById('btn-edit-mode').classList.remove('active');
                 document.getElementById('btn-add-stage').style.display = 'none';
-                document.querySelectorAll('.pay-accordion-content').forEach(el => el.classList.add('hidden'));
-                document.querySelectorAll('.sop-accordion-header, .general-accordion-header').forEach(el => el.classList.add('collapsed'));
+                
+                // 重置摺疊狀態 (除了 SOP，因為要保持)
+                document.querySelectorAll('.pay-accordion-content').forEach(el => {
+                    if (el.id !== 'sop-detail-content' && !el.id.startsWith('sop-cat-content') && !el.id.startsWith('detail-sop-cat')) {
+                        el.classList.add('hidden');
+                    }
+                });
+                document.querySelectorAll('.sop-accordion-header, .general-accordion-header').forEach(el => {
+                    if (el.id !== 'sop-header' && !el.getAttribute('onclick')?.includes('toggleSOPAccordion') && !el.getAttribute('onclick')?.includes('toggleProjectSOPAccordion')) {
+                        el.classList.add('collapsed');
+                    }
+                });
+
                 const list = type === 'design' ? designProjects : engProjects; 
                 const p = list.find(x => x.id === id); 
                 if(!p) { alert('查與此案件資料'); return; }
@@ -781,6 +796,23 @@
             content.classList.toggle('hidden');
         }
 
+        // 專門用於 SOP 且會記錄展開狀態的摺疊功能
+        function toggleSOPAccordion(id, cIdx) {
+            const content = document.getElementById(id);
+            const header = content.previousElementSibling;
+            const isHidden = content.classList.toggle('hidden');
+            header.classList.toggle('collapsed');
+            sopExpandedState[cIdx] = !isHidden;
+        }
+
+        function toggleProjectSOPAccordion(id, cIdx) {
+            const content = document.getElementById(id);
+            const header = content.previousElementSibling;
+            const isHidden = content.classList.toggle('hidden');
+            header.classList.toggle('collapsed');
+            projectSopExpandedState[cIdx] = !isHidden;
+        }
+
         async function toggleManualPaymentDone(pid, type) {
             const list = type === 'design' ? designProjects : engProjects;
             const collection = type === 'design' ? "design_projects" : "eng_projects";
@@ -833,9 +865,11 @@
                 (cat.items || []).forEach((item, iIdx) => {
                     itemsHtml += `<div class="sop-item-row"><span>${safe(item)}</span><button class="btn-mini-del" onclick="deleteSOPSubItem(${cIdx}, ${iIdx})">×</button></div>`;
                 });
+                
+                const isExpanded = sopExpandedState[cIdx] || false;
                 catBox.innerHTML = `
-                    <div class="sop-accordion-header collapsed" style="border-left:5px solid var(--orange); color:var(--orange);" onclick="togglePaymentAccordion('sop-cat-content-${cIdx}')">${safe(cat.name)}</div>
-                    <div id="sop-cat-content-${cIdx}" class="pay-accordion-content hidden" style="padding:10px;">
+                    <div class="sop-accordion-header ${isExpanded ? '' : 'collapsed'}" style="border-left:5px solid var(--orange); color:var(--orange);" onclick="toggleSOPAccordion('sop-cat-content-${cIdx}', ${cIdx})">${safe(cat.name)}</div>
+                    <div id="sop-cat-content-${cIdx}" class="pay-accordion-content ${isExpanded ? '' : 'hidden'}" style="padding:10px;">
                         <div style="display:flex; justify-content:flex-end; gap:10px; margin-bottom:10px;">
                             <button class="btn-sop-add" onclick="addSOPSubItem(${cIdx})">+ 子項目</button>
                             <button class="btn-mini-del" onclick="deleteSOPCategory(${cIdx})">🗑️</button>
@@ -895,11 +929,13 @@
                             <button class="btn-mini-del" style="font-size:0.8rem;" onclick="deleteProjectSOPItem(${cIdx}, ${iIdx})">×</button>
                         </div>`;
                 });
+                
+                const isExpanded = projectSopExpandedState[cIdx] || false;
                 catDiv.innerHTML = `
-                    <div class="sop-accordion-header collapsed" style="border-left:4px solid var(--orange); color:var(--orange); font-size:0.95rem; margin-bottom:5px;" onclick="togglePaymentAccordion('detail-sop-cat-${cIdx}')">
+                    <div class="sop-accordion-header ${isExpanded ? '' : 'collapsed'}" style="border-left:4px solid var(--orange); color:var(--orange); font-size:0.95rem; margin-bottom:5px;" onclick="toggleProjectSOPAccordion('detail-sop-cat-${cIdx}', ${cIdx})">
                         ${safe(cat.name)}
                     </div>
-                    <div id="detail-sop-cat-${cIdx}" class="pay-accordion-content hidden" style="padding:10px; background:rgba(0,0,0,0.1); border-radius:6px; margin-bottom:10px;">
+                    <div id="detail-sop-cat-${cIdx}" class="pay-accordion-content ${isExpanded ? '' : 'hidden'}" style="padding:10px; background:rgba(0,0,0,0.1); border-radius:6px; margin-bottom:10px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--divider); padding-bottom:5px; margin-bottom:8px;">
                             <input type="text" value="${safe(cat.name)}" style="background:transparent; border:none; color:var(--orange); font-weight:bold; font-size:0.95rem;" onchange="updateProjectSOPCatName(${cIdx}, this.value)">
                             <button class="btn-mini-del" onclick="deleteProjectSOPCategory(${cIdx})">🗑️</button>
@@ -943,6 +979,9 @@
             const p = list.find(x => x.id === currentId);
             p.sopItems[cIdx].items[iIdx].text = val;
             await updateCloud(collection, currentId, { sopItems: p.sopItems });
+            // 更新 Firebase 但不需要重整整個 UI，避免頻繁渲染，但為了數據同步我們通常還是會重渲染
+            // 這裡因為有 projectSopExpandedState 記錄，重渲染也不會縮合
+            renderProjectSOP(p);
         }
 
         async function updateProjectSOPCatName(cIdx, val) {
@@ -951,6 +990,7 @@
             const p = list.find(x => x.id === currentId);
             p.sopItems[cIdx].name = val;
             await updateCloud(collection, currentId, { sopItems: p.sopItems });
+            renderProjectSOP(p);
         }
 
         async function addProjectSOPSubItem(cIdx) {
@@ -1049,7 +1089,7 @@
         function renderActionBar(type, status) { const b = document.getElementById('action-bar-container'); b.innerHTML = ''; if (type === 'design') { const trackBtnLabel = status === 'tracking' ? '取消追蹤' : '追蹤中'; const trackBtnClass = status === 'tracking' ? 'btn-track' : 'btn-track'; b.innerHTML = `<button class="action-btn ${trackBtnClass}" onclick="toggleDesignTracking()">${trackBtnLabel}</button><button class="action-btn btn-del" onclick="deleteCurrentProject()">刪除</button><button class="action-btn btn-done" onclick="convertToEngineering()">完成</button>`; } else if (type === 'engineering') { b.innerHTML = `<button class="action-btn btn-del" onclick="deleteCurrentProject()">刪除</button><button class="action-btn btn-suspend" onclick="toggleSuspend()">${status==='suspended'?'恢復':'暫緩'}</button><button class="action-btn btn-done" onclick="moveToWarranty()">完工</button>`; } else if (type === 'warranty') { b.innerHTML = `<button class="action-btn btn-del" onclick="deleteCurrentProject()">刪除紀錄</button>`; } }
         function checkAlerts(){ const l=document.getElementById('alert-list'); l.innerHTML=''; const t=new Date().toISOString().split('T')[0]; let h=false; const chk=(projs,lbl,defs)=>{ projs.forEach(p=>{ if(p.status==='suspended'||p.status==='warranty')return; Object.keys(p.stages||{}).forEach(sid=>{ const s=p.stages[sid]; if(s.enabled!==false&&s.end&&s.end<t&&!s.done){ h=true; let sName = defs[sid] || s.name; l.innerHTML+=`<div class="alert-item" onclick="openDetail('${lbl==='設計'?'design':'engineering'}','${p.id}')">⚠️ [${lbl}] ${safe(p.name)} - ${safe(sName)} 延誤</div>`; } }) }) }; chk(designProjects,'設計',STAGES_DESIGN_DEF); engProjects.forEach(p=>{ if(p.status==='suspended'||p.status==='warranty')return; Object.keys(p.stages||{}).forEach(sid=>{ const s=p.stages[sid]; if(s.enabled!==false&&s.end&&s.end<t&&!s.done){ h=true; let sName = STAGES_ENG_DEF[sid] || s.name; l.innerHTML+=`<div class="alert-item" onclick="openDetail('engineering','${p.id}')">⚠️ [工程] ${safe(p.name)}-${safe(sName)} 延誤</div>`; } }) }); engProjects.forEach(p=>{if(p.status==='suspended'){h=true;l.innerHTML+=`<div class="alert-item" style="color:var(--orange)" onclick="openDetail('engineering','${p.id}')">⛔ [暫緩] ${safe(p.name)}</div>`;}}); engProjects.forEach(p=>{if(p.status==='warranty'&&p.warrantyDate){const d=new Date(p.warrantyDate); d.setMonth(d.getMonth()+10); if(t>=d.toISOString().split('T')[0]){h=true; l.innerHTML+=`<div class="alert-item" style="color:var(--purple)" onclick="openDetail('warranty','${p.id}')">📞 [保固] ${safe(p.name)} 維修關懷</div>`;}}}); document.getElementById('alert-dashboard').style.display=h?'block':'none'; }
         function renderCalendar(){ const y=calDate.getFullYear(), m=calDate.getMonth(); document.getElementById('cal-month-year').innerText = `${y}/${String(m+1).padStart(2,'0')}`; const c=document.getElementById('calendar-days'); c.innerHTML=''; for(let i=0;i<new Date(y,m,1).getDay();i++)c.innerHTML+='<div></div>'; for(let d=1;d<=new Date(y,m+1,0).getDate();d++){ const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; let hasDesign=false, hasEng=false; designProjects.forEach(p=>{ Object.values(p.stages||{}).forEach(s=>{if(s.start&&s.end&&ds>=s.start&&ds<=s.end)hasDesign=true;}); }); engProjects.forEach(p=>{ if(p.status!=='warranty'){ Object.values(p.stages||{}).forEach(s=>{ if(s.enabled!==false&&s.start&&s.end&&ds>=s.start&&ds<=s.end) hasEng=true; }); } }); let barsHtml='<div class="cal-bar-container">'; if(hasDesign)barsHtml+='<div class="cal-bar bar-design"></div>'; if(hasEng)barsHtml+='<div class="cal-bar bar-eng"></div>'; barsHtml+='</div>'; const div=document.createElement('div'); div.className=`cal-date`; div.innerHTML=`<span>${d}</span>${barsHtml}`; div.onclick=()=>showEvents(ds,div); c.appendChild(div); } }
-        function showEvents(ds,el){ document.querySelectorAll('.cal-date').forEach(e=>e.classList.remove('active')); el.classList.add('active'); const b=document.getElementById('calendar-events'); b.innerHTML=`<div style="font-weight:bold;margin-bottom:10px">📅 ${formatDate(ds)}</div>`; let h=''; const add=(l,lbl,def,typ)=>l.forEach(p=>{ if(p.status === 'warranty') return; Object.keys(p.stages||{}).forEach(sid=>{ const s=p.stages[sid]; if(s.enabled!==false&&s.start&&s.end&&ds>=s.start&&ds<=s.end){ let sName = def[sid] || s.name; h+=`<div class="event-item" onclick="openDetail('${typ}','${p.id}')"><div class="dot" style="background:var(--${typ==='design'?'blue':'yellow'})"></div>進行中：${safe(p.name)} - ${safe(sName)}</div>`; } }); }); add(designProjects,'設',STAGES_DESIGN_DEF,'design'); add(engProjects,'工',STAGES_ENG_DEF,'engineering'); if(h==='')h='<div style="color:#666">今日無行程</div>'; b.innerHTML+=h; }
+        function showEvents(ds,el){ document.querySelectorAll('.cal-date').forEach(e=>e.classList.remove('active')); el.classList.add('active'); const b=document.getElementById('calendar-events'); b.innerHTML=`<div style="font-weight:bold;margin-bottom:10px">📅 ${formatDate(ds)}</div>`; let h=''; const add=(l,lbl,def,typ)=>l.forEach(p=>{ if(p.status === 'warranty') return; Object.keys(p.stages||{}).forEach(sid=>{ const s=p.stages[sid]; if(s.enabled!==false&&s.start&&s.end&&ds>=s.start&&ds<=s.end){ let sName = def[sid] || s.name; h+=`<div class="event-item" onclick="openDetail('${typ}','${p.id}')"><div class="dot" style="background:var(--${typ==='design'?'blue':'orange'})"></div>進行中：${safe(p.name)} - ${safe(sName)}</div>`; } }); }); add(designProjects,'設',STAGES_DESIGN_DEF,'design'); add(engProjects,'工',STAGES_ENG_DEF,'engineering'); if(h==='')h='<div style="color:#666">今日無行程</div>'; b.innerHTML+=h; }
         function openAddModal(t){addModeType=t; document.getElementById('modal-title').innerText=t==='design'?'新增設計':'新增工程'; document.getElementById('add-modal').style.display='flex'; document.getElementById('new-name').value='';}
         function closeAddModal(){document.getElementById('add-modal').style.display='none';}
         function changeMonth(n){calDate.setMonth(calDate.getMonth()+n); renderCalendar();}
