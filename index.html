@@ -6,7 +6,7 @@
     <title>對錯空間 v1 (Log Edit & Date)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#202124">
+    <meta name="theme-color" #202124">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
 
@@ -327,6 +327,7 @@
                 </div>
                 <div id="detail-payment-container"></div>
                 <button id="add-payment-btn" style="display:none; margin-top:10px; font-size:0.8rem; background:var(--surface-color); border:1px solid var(--teal); color:var(--teal); padding:5px 10px; border-radius:12px;" onclick="addEngineeringPaymentStage()">+ 新增收款期數</button>
+                <button id="sop-sync-btn-area" class="status-btn" style="width:100%; margin-top:15px; border-color:var(--orange); color:var(--orange);" onclick="syncProjectSOP()">🔄 同步標準範本</button>
             </div>
         </div>
 
@@ -394,7 +395,6 @@
         let isEditMode = false;
         let editingLogId = null;
 
-        // 用於記錄展開狀態的物件
         let sopExpandedState = {};
         let projectSopExpandedState = {};
 
@@ -607,7 +607,6 @@
                 document.getElementById('btn-edit-mode').classList.remove('active');
                 document.getElementById('btn-add-stage').style.display = 'none';
                 
-                // 重置摺疊狀態 (除了 SOP，因為要保持)
                 document.querySelectorAll('.pay-accordion-content').forEach(el => {
                     if (el.id !== 'sop-detail-content' && !el.id.startsWith('sop-cat-content') && !el.id.startsWith('detail-sop-cat')) {
                         el.classList.add('hidden');
@@ -626,7 +625,13 @@
                 const dPriceRow = document.getElementById('design-price-row'); const ePriceRow = document.getElementById('engineering-price-row'); const wDateRow = document.getElementById('warranty-date-row'); const payBtn = document.getElementById('add-payment-btn'); 
                 dPriceRow.style.display = 'none'; ePriceRow.style.display = 'none'; wDateRow.style.display = 'none'; payBtn.style.display = 'none'; 
                 checkAdvancementAlert(p);
-                if (type === 'warranty') { document.getElementById('detail-sop-section').style.display = 'none'; } else { document.getElementById('detail-sop-section').style.display = 'block'; }
+                if (type === 'warranty') { 
+                    document.getElementById('detail-sop-section').style.display = 'none'; 
+                    document.getElementById('sop-sync-btn-area').style.display = 'none';
+                } else { 
+                    document.getElementById('detail-sop-section').style.display = 'block'; 
+                    document.getElementById('sop-sync-btn-area').style.display = 'block';
+                }
                 if (type === 'design') { 
                     dPriceRow.style.display = 'block'; document.getElementById('d-design-price').value = p.designPrice ? formatNumber(p.designPrice) : ''; 
                     if(!p.stageOrder) p.stageOrder = [...DEFAULT_DESIGN_ORDER]; 
@@ -737,8 +742,8 @@
                             </div>
                             <div style="display:flex; gap:5px;">
                                 <button class="status-btn unpaid ${sData.paymentStatus!=='paid'&&sData.paymentStatus!=='adv'?'active':''}" onclick="updateStageField('${sid}','paymentStatus','unpaid')">未付</button>
-                                <button class="status-btn paid ${sData.paymentStatus==='paid'?'active':''}" onclick="updateStageField('${sid}','paid')">已付</button>
-                                <button class="status-btn adv ${sData.paymentStatus==='adv'?'active':''}" onclick="updateStageField('${sid}','adv')">代墊</button>
+                                <button class="status-btn paid ${sData.paymentStatus==='paid'?'active':''}" onclick="updateStageField('${sid}','paymentStatus','paid')">已付</button>
+                                <button class="status-btn adv ${sData.paymentStatus==='adv'?'active':''}" onclick="updateStageField('${sid}','paymentStatus','adv')">代墊</button>
                             </div>
                         </div>`;
                     }
@@ -796,7 +801,6 @@
             content.classList.toggle('hidden');
         }
 
-        // 專門用於 SOP 且會記錄展開狀態的摺疊功能
         function toggleSOPAccordion(id, cIdx) {
             const content = document.getElementById(id);
             const header = content.previousElementSibling;
@@ -979,8 +983,6 @@
             const p = list.find(x => x.id === currentId);
             p.sopItems[cIdx].items[iIdx].text = val;
             await updateCloud(collection, currentId, { sopItems: p.sopItems });
-            // 更新 Firebase 但不需要重整整個 UI，避免頻繁渲染，但為了數據同步我們通常還是會重渲染
-            // 這裡因為有 projectSopExpandedState 記錄，重渲染也不會縮合
             renderProjectSOP(p);
         }
 
@@ -1023,6 +1025,31 @@
             renderProjectSOP(p);
         }
 
+        async function updateStageField(sid, f, v) { 
+            const collection = (currentType === 'design') ? "design_projects" : "eng_projects"; 
+            const val = (f === 'cost') ? parseCurrency(v) : v; 
+            const list = (currentType === 'design') ? designProjects : engProjects; 
+            const p = list.find(x => x.id === currentId); 
+            if(p && p.stages[sid]) { p.stages[sid][f] = val; } 
+            const updateKey = `stages.${sid}.${f}`; 
+            await updateCloud(collection, currentId, { [updateKey]: val }); 
+            if(f === 'cost' || f === 'taxEnabled' || f === 'paymentStatus') { 
+                if (currentType === 'engineering' || currentType === 'warranty') calculateTotalEng(p); 
+                if (f === 'cost' || f === 'taxEnabled') { 
+                    const span = document.getElementById(`stage-tax-val-${sid}`); 
+                    if(span) { 
+                        const costVal = parseInt(p.stages[sid].cost) || 0; 
+                        const stageTax = p.stages[sid].taxEnabled ? Math.round(costVal * 0.05) : 0; 
+                        span.innerText = `含稅 ${stageTax>0 ? '($'+formatNumber(stageTax)+')' : ''}`; 
+                    } 
+                } 
+                if (f === 'paymentStatus') { 
+                    renderStages(p, currentType); 
+                    checkAdvancementAlert(p); 
+                } 
+            } 
+        }
+
         async function addLog(){ 
             const d = document.getElementById('new-log-date').value; 
             const t = document.getElementById('new-log-text').value; 
@@ -1042,7 +1069,6 @@
         function renderLogs(p){ const c=document.getElementById('log-list-container'); c.innerHTML=''; (p.logs||[]).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(l=>{ c.innerHTML+=`<div class="log-item"><button class="log-delete" onclick="deleteLog(${l.id})">×</button><button class="log-edit" onclick="editLog(${l.id})">✎ 編輯</button><div class="log-date">${formatDate(l.date)}</div><div class="log-content">${safe(l.content)}</div>${l.photo?`<img src="${l.photo}" class="log-image">`:''}</div>`; }); }
         async function deleteLog(lid){ if(!confirm('刪除?'))return; const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const updatedLogs = p.logs.filter(k=>k.id!==lid); await updateCloud(collection, currentId, { logs: updatedLogs }); p.logs = updatedLogs; renderLogs(p); }
         
-        async function updateStageField(sid, f, v) { const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const val = (f === 'cost') ? parseCurrency(v) : v; const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); if(p && p.stages[sid]) { p.stages[sid][f] = val; } const updateKey = `stages.${sid}.${f}`; await updateCloud(collection, currentId, { [updateKey]: val }); if(f === 'cost' || f === 'taxEnabled' || f === 'paymentStatus') { if (currentType === 'engineering') calculateTotalEng(p); if (f === 'cost' || f === 'taxEnabled') { const span = document.getElementById(`stage-tax-val-${sid}`); if(span) { const costVal = parseInt(p.stages[sid].cost) || 0; const stageTax = p.stages[sid].taxEnabled ? Math.round(costVal * 0.05) : 0; span.innerText = `含稅 ${stageTax>0 ? '($'+formatNumber(stageTax)+')' : ''}`; } } if (f === 'paymentStatus') { renderStages(p, currentType); checkAdvancementAlert(p); } } }
         async function toggleStageEnable(sid, e) { const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const updateKey = `stages.${sid}.enabled`; await updateCloud(collection, currentId, { [updateKey]: e }); const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); if(!p.stages[sid]) p.stages[sid]={}; p.stages[sid].enabled = e; renderStages(p, currentType); }
         async function togglePayment(pid, idx, type) { const collection = type === 'design' ? "design_projects" : "eng_projects"; const list = type === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === pid); const newPayments = [...p.payments]; newPayments[idx].done = !newPayments[idx].done; if(newPayments[idx].done && !newPayments[idx].date) newPayments[idx].date = new Date().toISOString().split('T')[0]; await updateCloud(collection, pid, { payments: newPayments }); if(document.getElementById('payment-page').classList.contains('active')) renderPaymentPage(); else renderDetailPayments(p, type); }
         async function updatePaymentVal(pid, idx, key, val, type) { const collection = type === 'design' ? "design_projects" : "eng_projects"; const list = type === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === pid); const newPayments = [...p.payments]; newPayments[idx][key] = val; await updateCloud(collection, pid, { payments: newPayments }); }
