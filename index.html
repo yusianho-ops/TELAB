@@ -6,7 +6,7 @@
     <title>對錯空間 v1 (Log Edit & Date)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" #202124">
+    <meta name="theme-color" content="#202124">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
 
@@ -327,7 +327,6 @@
                 </div>
                 <div id="detail-payment-container"></div>
                 <button id="add-payment-btn" style="display:none; margin-top:10px; font-size:0.8rem; background:var(--surface-color); border:1px solid var(--teal); color:var(--teal); padding:5px 10px; border-radius:12px;" onclick="addEngineeringPaymentStage()">+ 新增收款期數</button>
-                <button id="sop-sync-btn-area" class="status-btn" style="width:100%; margin-top:15px; border-color:var(--orange); color:var(--orange);" onclick="syncProjectSOP()">🔄 同步標準範本</button>
             </div>
         </div>
 
@@ -481,10 +480,10 @@
 
         async function updateCloud(collection, id, data) { await db.collection(collection).doc(id).update(data); }
         function updateField(key, value) {
-            const collection = currentType === 'design' ? "design_projects" : "eng_projects";
+            const collection = (currentType === 'design') ? "design_projects" : "eng_projects";
             let val = value;
             if (['designPrice','engBasePrice','engVarPrice'].includes(key)) val = parseCurrency(value);
-            const list = currentType === 'design' ? designProjects : engProjects;
+            const list = (currentType === 'design') ? designProjects : engProjects;
             const p = list.find(x => x.id === currentId);
             if(p) { 
                 p[key] = val; 
@@ -564,7 +563,7 @@
                 btn.classList.remove('active');
                 addBtn.style.display = 'none';
             }
-            const list = currentType === 'design' ? designProjects : engProjects;
+            const list = (currentType === 'design') ? designProjects : engProjects;
             const p = list.find(x => x.id === currentId);
             renderStages(p, currentType);
         }
@@ -573,11 +572,12 @@
             const name = prompt("請輸入項目名稱:");
             if(!name) return;
             const sid = 'cust_' + Date.now();
-            const collection = currentType === 'design' ? "design_projects" : "eng_projects";
-            const list = currentType === 'design' ? designProjects : engProjects;
+            const collection = (currentType === 'design') ? "design_projects" : "eng_projects";
+            const list = (currentType === 'design') ? designProjects : engProjects;
             const p = list.find(x => x.id === currentId);
             if(!p.stages) p.stages = {};
             p.stages[sid] = { name: name, enabled: true, custom: true, start:'', end:'', vendor:'', cost:'' };
+            if(!p.stageOrder) p.stageOrder = [];
             p.stageOrder.push(sid);
             await updateCloud(collection, currentId, { 
                 [`stages.${sid}`]: p.stages[sid],
@@ -618,7 +618,7 @@
                     }
                 });
 
-                const list = type === 'design' ? designProjects : engProjects; 
+                const list = (type === 'design') ? designProjects : engProjects; 
                 const p = list.find(x => x.id === id); 
                 if(!p) { alert('查與此案件資料'); return; }
                 ['name', 'client', 'phone', 'address', 'parking', 'code'].forEach(key => { document.getElementById('d-' + key).value = p[key] || ''; }); 
@@ -627,10 +627,8 @@
                 checkAdvancementAlert(p);
                 if (type === 'warranty') { 
                     document.getElementById('detail-sop-section').style.display = 'none'; 
-                    document.getElementById('sop-sync-btn-area').style.display = 'none';
                 } else { 
                     document.getElementById('detail-sop-section').style.display = 'block'; 
-                    document.getElementById('sop-sync-btn-area').style.display = 'block';
                 }
                 if (type === 'design') { 
                     dPriceRow.style.display = 'block'; document.getElementById('d-design-price').value = p.designPrice ? formatNumber(p.designPrice) : ''; 
@@ -742,8 +740,8 @@
                             </div>
                             <div style="display:flex; gap:5px;">
                                 <button class="status-btn unpaid ${sData.paymentStatus!=='paid'&&sData.paymentStatus!=='adv'?'active':''}" onclick="updateStageField('${sid}','paymentStatus','unpaid')">未付</button>
-                                <button class="status-btn paid ${sData.paymentStatus==='paid'?'active':''}" onclick="updateStageField('${sid}','paymentStatus','paid')">已付</button>
-                                <button class="status-btn adv ${sData.paymentStatus==='adv'?'active':''}" onclick="updateStageField('${sid}','paymentStatus','adv')">代墊</button>
+                                <button class="status-btn paid ${sData.paymentStatus==='paid'?'active':''}" onclick="updateStageField('${sid}','paid')">已付</button>
+                                <button class="status-btn adv ${sData.paymentStatus==='adv'?'active':''}" onclick="updateStageField('${sid}','adv')">代墊</button>
                             </div>
                         </div>`;
                     }
@@ -759,13 +757,13 @@
         }
 
         function updateProgressText(total, done) {
-             const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+             const pct = (total === 0) ? 0 : Math.round((done / total) * 100);
              const el = document.getElementById('progress-display');
              if(el) el.innerText = pct + '%';
         }
 
         function toggleDoneOptimistic(sid) {
-            const list = currentType === 'design' ? designProjects : engProjects;
+            const list = (currentType === 'design') ? designProjects : engProjects;
             const p = list.find(x => x.id === currentId);
             p.stages[sid].done = !p.stages[sid].done;
             const itemDiv = document.getElementById(`stage-item-${sid}`);
@@ -775,7 +773,7 @@
             }
             const prog = calculateProgress(p, currentType);
             updateProgressText(prog.activeCount, prog.doneCount);
-            const collection = currentType === 'design' ? "design_projects" : "eng_projects";
+            const collection = (currentType === 'design') ? "design_projects" : "eng_projects";
             const updateKey = `stages.${sid}.done`;
             updateCloud(collection, currentId, { [updateKey]: p.stages[sid].done });
         }
@@ -818,11 +816,11 @@
         }
 
         async function toggleManualPaymentDone(pid, type) {
-            const list = type === 'design' ? designProjects : engProjects;
-            const collection = type === 'design' ? "design_projects" : "eng_projects";
+            const list = (type === 'design') ? designProjects : engProjects;
+            const collection = (type === 'design') ? "design_projects" : "eng_projects";
             const p = list.find(x => x.id === pid);
             const autoDone = p.payments && p.payments.length > 0 && p.payments.every(pay => pay.done);
-            const currentStatus = p.manualPaymentDone !== undefined ? p.manualPaymentDone : autoDone;
+            const currentStatus = (p.manualPaymentDone !== undefined) ? p.manualPaymentDone : autoDone;
             await updateCloud(collection, pid, { manualPaymentDone: !currentStatus });
             renderPaymentPage();
         }
@@ -830,12 +828,12 @@
         function renderPaymentPage() { 
             const container = document.getElementById('payment-content-container'); 
             container.innerHTML = ''; 
-            const list = currentPaymentTab === 'design' ? designProjects : engProjects; 
+            const list = (currentPaymentTab === 'design') ? designProjects : engProjects; 
             if(list.length === 0) { container.innerHTML = '<div style="text-align:center;color:#666;margin-top:30px">暫無合約</div>'; return; } 
             const pendingList = []; const completedList = [];
             list.forEach(p => {
                 const autoDone = p.payments && p.payments.length > 0 && p.payments.every(pay => pay.done);
-                const isDone = p.manualPaymentDone !== undefined ? p.manualPaymentDone : autoDone;
+                const isDone = (p.manualPaymentDone !== undefined) ? p.manualPaymentDone : autoDone;
                 if (isDone) completedList.push(p);
                 else pendingList.push(p);
             });
@@ -850,7 +848,7 @@
                         if(currentPaymentTab === 'design') { const price = parseInt(p.designPrice) || 0; const tax = (p.taxEnabled === true) ? Math.round(price * 0.05) : 0; totalVal = price + tax; } else { const base = parseInt(p.engBasePrice) || 0; const vary = parseInt(p.engVarPrice) || 0; const isSup = p.supervisionEnabled === true; const supRate = p.supervisionRate || 0.05; const supFee = isSup ? Math.round((base + vary) * supRate) : 0; const sumForTax = base + vary + supFee; const tax = (p.taxEnabled === true) ? Math.round(sumForTax * 0.05) : 0; totalVal = sumForTax + tax; }
                         let profitHtml = ''; if (currentPaymentTab === 'engineering') { let totalCost = 0; Object.values(p.stages || {}).forEach(s => { if (s.enabled && s.cost) { let c = parseInt(s.cost || 0); if (s.taxEnabled) c += Math.round(c * 0.05); totalCost += c; } }); const profit = totalVal - totalCost; const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative'; profitHtml = `<div class="profit-box"><div class="profit-title">財務損益表 (內部)</div><div class="profit-row"><span>合約+追加+監工+稅金</span> <span>$${formatNumber(totalVal)}</span></div><div class="profit-row"><span>發包總支 (含稅)</span> <span>$${formatNumber(totalCost)}</span></div><div class="profit-final"><span>預估毛利</span> <span class="${profitClass}">$${formatNumber(profit)}</span></div></div>`; } 
                         let paymentsHtml = ''; (p.payments || []).forEach((pay, idx) => { let amountDisplay = '待計算'; if (totalVal > 0) { if (pay.ratio) amountDisplay = formatNumber(Math.round(totalVal * pay.ratio)); else if (pay.amount) amountDisplay = formatNumber(pay.amount); } let linkedStageName = ''; if (currentPaymentTab === 'engineering' && pay.linkedStage) { let sName = STAGES_ENG_DEF[pay.linkedStage] || (p.stages[pay.linkedStage]?.name) || "未知"; linkedStageName = `<div style="font-size:0.8rem; color:var(--text-secondary)">連結：${safe(sName)}</div>`; } paymentsHtml += `<div class="payment-row"><div class="pay-col-check"><div class="custom-checkbox ${pay.done ? 'checked' : ''}" style="border-color:var(--teal)" onclick="togglePayment('${p.id}', ${idx}, '${currentPaymentTab}')"></div></div><div class="pay-col-name"><div style="font-weight:bold;">${safe(pay.name)}</div>${linkedStageName}</div><div class="pay-col-info"><div style="color:var(--yellow); font-weight:bold;">$${amountDisplay}</div><div class="pay-date-input">${formatDate(pay.date)}</div></div></div>`; }); 
-                        const card = document.createElement('div'); card.className = 'payment-card'; const autoDone = p.payments && p.payments.length > 0 && p.payments.every(pay => pay.done); const isDone = p.manualPaymentDone !== undefined ? p.manualPaymentDone : autoDone; card.innerHTML = `<div class="payment-title-row"><div class="payment-title">${safe(p.name)} <span style="font-size:0.8rem; font-weight:normal; color:#888;">(${safe(p.client||'')})</span></div><button class="btn-manual-move" onclick="toggleManualPaymentDone('${p.id}', '${currentPaymentTab}')">${isDone ? '移回未收款' : '移入已收款'}</button></div><div class="payment-amount">總額：$${formatNumber(totalVal)}</div>${profitHtml}${paymentsHtml}`; contentDiv.appendChild(card);
+                        const card = document.createElement('div'); card.className = 'payment-card'; const autoDone = p.payments && p.payments.length > 0 && p.payments.every(pay => pay.done); const isDone = (p.manualPaymentDone !== undefined) ? p.manualPaymentDone : autoDone; card.innerHTML = `<div class="payment-title-row"><div class="payment-title">${safe(p.name)} <span style="font-size:0.8rem; font-weight:normal; color:#888;">(${safe(p.client||'')})</span></div><button class="btn-manual-move" onclick="toggleManualPaymentDone('${p.id}', '${currentPaymentTab}')">${isDone ? '移回未收款' : '移入已收款'}</button></div><div class="payment-amount">總額：$${formatNumber(totalVal)}</div>${profitHtml}${paymentsHtml}`; contentDiv.appendChild(card);
                     });
                 }
                 container.appendChild(contentDiv);
@@ -867,12 +865,14 @@
                 catBox.className = 'sop-cat-box';
                 let itemsHtml = '';
                 (cat.items || []).forEach((item, iIdx) => {
-                    itemsHtml += `<div class="sop-item-row"><span>${safe(item)}</span><button class="btn-mini-del" onclick="deleteSOPSubItem(${cIdx}, ${iIdx})">×</button></div>`;
+                    itemsHtml += `<div class="sop-item-row"><input type="text" class="detail-sop-input" value="${safe(item)}" onchange="updateSOPItemText(${cIdx}, ${iIdx}, this.value)"><button class="btn-mini-del" onclick="deleteSOPSubItem(${cIdx}, ${iIdx})">×</button></div>`;
                 });
                 
                 const isExpanded = sopExpandedState[cIdx] || false;
                 catBox.innerHTML = `
-                    <div class="sop-accordion-header ${isExpanded ? '' : 'collapsed'}" style="border-left:5px solid var(--orange); color:var(--orange);" onclick="toggleSOPAccordion('sop-cat-content-${cIdx}', ${cIdx})">${safe(cat.name)}</div>
+                    <div class="sop-accordion-header ${isExpanded ? '' : 'collapsed'}" style="border-left:5px solid var(--orange); color:var(--orange);" onclick="toggleSOPAccordion('sop-cat-content-${cIdx}', ${cIdx})">
+                        <input type="text" value="${safe(cat.name)}" style="background:transparent; border:none; color:var(--orange); font-weight:bold; font-size:1rem;" onclick="event.stopPropagation()" onchange="updateSOPCatName(${cIdx}, this.value)">
+                    </div>
                     <div id="sop-cat-content-${cIdx}" class="pay-accordion-content ${isExpanded ? '' : 'hidden'}" style="padding:10px;">
                         <div style="display:flex; justify-content:flex-end; gap:10px; margin-bottom:10px;">
                             <button class="btn-sop-add" onclick="addSOPSubItem(${cIdx})">+ 子項目</button>
@@ -882,6 +882,18 @@
                     </div>`;
                 container.appendChild(catBox);
             });
+        }
+
+        async function updateSOPCatName(cIdx, val) {
+            const categories = [...(sopTemplates[currentSOPTab] || [])];
+            categories[cIdx].name = val;
+            await db.collection("sop_templates").doc(currentSOPTab).set({ categories: categories });
+        }
+
+        async function updateSOPItemText(cIdx, iIdx, val) {
+            const categories = [...(sopTemplates[currentSOPTab] || [])];
+            categories[cIdx].items[iIdx] = val;
+            await db.collection("sop_templates").doc(currentSOPTab).set({ categories: categories });
         }
 
         async function addSOPCategory() {
@@ -953,15 +965,15 @@
 
         async function syncProjectSOP() {
             if(!confirm("確定要同步標準範本？這將會覆蓋目前案件內已編輯的 SOP。")) return;
-            const type = currentType === 'design' ? 'design' : 'engineering';
+            const type = (currentType === 'design') ? 'design' : 'engineering';
             const categories = sopTemplates[type] || [];
             if(categories.length === 0) return alert("範本內尚無內容。");
             const newSOP = categories.map(cat => ({
                 name: cat.name,
                 items: (cat.items || []).map(text => ({ text: text, checked: false }))
             }));
-            const collection = currentType === 'design' ? "design_projects" : "eng_projects";
-            const list = currentType === 'design' ? designProjects : engProjects;
+            const collection = (currentType === 'design') ? "design_projects" : "eng_projects";
+            const list = (currentType === 'design') ? designProjects : engProjects;
             const p = list.find(x => x.id === currentId);
             p.sopItems = newSOP;
             await updateCloud(collection, currentId, { sopItems: newSOP });
@@ -969,8 +981,8 @@
         }
 
         async function toggleProjectSOPItem(cIdx, iIdx) {
-            const collection = currentType === 'design' ? "design_projects" : "eng_projects";
-            const list = currentType === 'design' ? designProjects : engProjects;
+            const collection = (currentType === 'design') ? "design_projects" : "eng_projects";
+            const list = (currentType === 'design') ? designProjects : engProjects;
             const p = list.find(x => x.id === currentId);
             p.sopItems[cIdx].items[iIdx].checked = !p.sopItems[cIdx].items[iIdx].checked;
             await updateCloud(collection, currentId, { sopItems: p.sopItems });
@@ -978,8 +990,8 @@
         }
 
         async function updateProjectSOPField(cIdx, iIdx, val) {
-            const collection = currentType === 'design' ? "design_projects" : "eng_projects";
-            const list = currentType === 'design' ? designProjects : engProjects;
+            const collection = (currentType === 'design') ? "design_projects" : "eng_projects";
+            const list = (currentType === 'design') ? designProjects : engProjects;
             const p = list.find(x => x.id === currentId);
             p.sopItems[cIdx].items[iIdx].text = val;
             await updateCloud(collection, currentId, { sopItems: p.sopItems });
@@ -987,8 +999,8 @@
         }
 
         async function updateProjectSOPCatName(cIdx, val) {
-            const collection = currentType === 'design' ? "design_projects" : "eng_projects";
-            const list = currentType === 'design' ? designProjects : engProjects;
+            const collection = (currentType === 'design') ? "design_projects" : "eng_projects";
+            const list = (currentType === 'design') ? designProjects : engProjects;
             const p = list.find(x => x.id === currentId);
             p.sopItems[cIdx].name = val;
             await updateCloud(collection, currentId, { sopItems: p.sopItems });
@@ -998,8 +1010,8 @@
         async function addProjectSOPSubItem(cIdx) {
             const text = prompt("請輸入細項名稱:");
             if(!text) return;
-            const collection = currentType === 'design' ? "design_projects" : "eng_projects";
-            const list = currentType === 'design' ? designProjects : engProjects;
+            const collection = (currentType === 'design') ? "design_projects" : "eng_projects";
+            const list = (currentType === 'design') ? designProjects : engProjects;
             const p = list.find(x => x.id === currentId);
             p.sopItems[cIdx].items.push({ text: text, checked: false });
             await updateCloud(collection, currentId, { sopItems: p.sopItems });
@@ -1007,8 +1019,8 @@
         }
 
         async function deleteProjectSOPItem(cIdx, iIdx) {
-            const collection = currentType === 'design' ? "design_projects" : "eng_projects";
-            const list = currentType === 'design' ? designProjects : engProjects;
+            const collection = (currentType === 'design') ? "design_projects" : "eng_projects";
+            const list = (currentType === 'design') ? designProjects : engProjects;
             const p = list.find(x => x.id === currentId);
             p.sopItems[cIdx].items.splice(iIdx, 1);
             await updateCloud(collection, currentId, { sopItems: p.sopItems });
@@ -1017,8 +1029,8 @@
 
         async function deleteProjectSOPCategory(cIdx) {
             if(!confirm("確定刪除此大項目？")) return;
-            const collection = currentType === 'design' ? "design_projects" : "eng_projects";
-            const list = currentType === 'design' ? designProjects : engProjects;
+            const collection = (currentType === 'design') ? "design_projects" : "eng_projects";
+            const list = (currentType === 'design') ? designProjects : engProjects;
             const p = list.find(x => x.id === currentId);
             p.sopItems.splice(cIdx, 1);
             await updateCloud(collection, currentId, { sopItems: p.sopItems });
@@ -1039,7 +1051,7 @@
                     const span = document.getElementById(`stage-tax-val-${sid}`); 
                     if(span) { 
                         const costVal = parseInt(p.stages[sid].cost) || 0; 
-                        const stageTax = p.stages[sid].taxEnabled ? Math.round(costVal * 0.05) : 0; 
+                        const stageTax = (p.stages[sid].taxEnabled) ? Math.round(costVal * 0.05) : 0; 
                         span.innerText = `含稅 ${stageTax>0 ? '($'+formatNumber(stageTax)+')' : ''}`; 
                     } 
                 } 
@@ -1057,27 +1069,27 @@
             if(!t && !tempPhotoFile) return alert('請輸入內容或選擇照片'); 
             document.getElementById('loading-overlay').style.display = 'flex'; 
             let photoUrl = ''; 
-            if (editingLogId) { const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const oldLog = p.logs.find(l => l.id === editingLogId); if (oldLog) photoUrl = oldLog.photo || ''; }
+            if (editingLogId) { const list = (currentType === 'design') ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const oldLog = p.logs.find(l => l.id === editingLogId); if (oldLog) photoUrl = oldLog.photo || ''; }
             if(tempPhotoFile) { try { const storageRef = storage.ref(); const fileRef = storageRef.child(`project_logs/${Date.now()}_${tempPhotoFile.name}`); await fileRef.put(tempPhotoFile); photoUrl = await fileRef.getDownloadURL(); } catch(e) { console.error(e); alert("Upload failed"); document.getElementById('loading-overlay').style.display = 'none'; return; } } 
-            const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); 
+            const collection = (currentType === 'design') ? "design_projects" : "eng_projects"; const list = (currentType === 'design') ? designProjects : engProjects; const p = list.find(x => x.id === currentId); 
             let updatedLogs = [...(p.logs || [])];
             if (editingLogId) { const idx = updatedLogs.findIndex(l => l.id === editingLogId); if (idx !== -1) { updatedLogs[idx] = { id: editingLogId, date: d, content: t, photo: photoUrl }; } } else { updatedLogs.push({ id: Date.now(), date: d, content: t, photo: photoUrl }); }
             await updateCloud(collection, currentId, { logs: updatedLogs }); p.logs = updatedLogs; renderLogs(p); document.getElementById('loading-overlay').style.display = 'none'; clearTempData(); document.getElementById('new-log-date').value = new Date().toISOString().split('T')[0]; 
         }
         
-        function editLog(lid) { const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const l = p.logs.find(k => k.id === lid); if(l) { editingLogId = lid; document.getElementById('new-log-date').value = l.date; document.getElementById('new-log-text').value = l.content; document.getElementById('btn-save-log').innerText = '更新紀錄'; window.scrollTo({ top: document.querySelector('.log-input-area').offsetTop - 60, behavior: 'smooth' }); } }
+        function editLog(lid) { const list = (currentType === 'design') ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const l = p.logs.find(k => k.id === lid); if(l) { editingLogId = lid; document.getElementById('new-log-date').value = l.date; document.getElementById('new-log-text').value = l.content; document.getElementById('btn-save-log').innerText = '更新紀錄'; window.scrollTo({ top: document.querySelector('.log-input-area').offsetTop - 60, behavior: 'smooth' }); } }
         function renderLogs(p){ const c=document.getElementById('log-list-container'); c.innerHTML=''; (p.logs||[]).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(l=>{ c.innerHTML+=`<div class="log-item"><button class="log-delete" onclick="deleteLog(${l.id})">×</button><button class="log-edit" onclick="editLog(${l.id})">✎ 編輯</button><div class="log-date">${formatDate(l.date)}</div><div class="log-content">${safe(l.content)}</div>${l.photo?`<img src="${l.photo}" class="log-image">`:''}</div>`; }); }
-        async function deleteLog(lid){ if(!confirm('刪除?'))return; const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const updatedLogs = p.logs.filter(k=>k.id!==lid); await updateCloud(collection, currentId, { logs: updatedLogs }); p.logs = updatedLogs; renderLogs(p); }
+        async function deleteLog(lid){ if(!confirm('刪除?'))return; const collection = (currentType === 'design') ? "design_projects" : "eng_projects"; const list = (currentType === 'design') ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const updatedLogs = p.logs.filter(k=>k.id!==lid); await updateCloud(collection, currentId, { logs: updatedLogs }); p.logs = updatedLogs; renderLogs(p); }
         
-        async function toggleStageEnable(sid, e) { const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const updateKey = `stages.${sid}.enabled`; await updateCloud(collection, currentId, { [updateKey]: e }); const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); if(!p.stages[sid]) p.stages[sid]={}; p.stages[sid].enabled = e; renderStages(p, currentType); }
-        async function togglePayment(pid, idx, type) { const collection = type === 'design' ? "design_projects" : "eng_projects"; const list = type === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === pid); const newPayments = [...p.payments]; newPayments[idx].done = !newPayments[idx].done; if(newPayments[idx].done && !newPayments[idx].date) newPayments[idx].date = new Date().toISOString().split('T')[0]; await updateCloud(collection, pid, { payments: newPayments }); if(document.getElementById('payment-page').classList.contains('active')) renderPaymentPage(); else renderDetailPayments(p, type); }
-        async function updatePaymentVal(pid, idx, key, val, type) { const collection = type === 'design' ? "design_projects" : "eng_projects"; const list = type === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === pid); const newPayments = [...p.payments]; newPayments[idx][key] = val; await updateCloud(collection, pid, { payments: newPayments }); }
+        async function toggleStageEnable(sid, e) { const collection = (currentType === 'design') ? "design_projects" : "eng_projects"; const updateKey = `stages.${sid}.enabled`; await updateCloud(collection, currentId, { [updateKey]: e }); const list = (currentType === 'design') ? designProjects : engProjects; const p = list.find(x => x.id === currentId); if(!p.stages[sid]) p.stages[sid]={}; p.stages[sid].enabled = e; renderStages(p, currentType); }
+        async function togglePayment(pid, idx, type) { const collection = (type === 'design') ? "design_projects" : "eng_projects"; const list = (type === 'design') ? designProjects : engProjects; const p = list.find(x => x.id === pid); const newPayments = [...p.payments]; newPayments[idx].done = !newPayments[idx].done; if(newPayments[idx].done && !newPayments[idx].date) newPayments[idx].date = new Date().toISOString().split('T')[0]; await updateCloud(collection, pid, { payments: newPayments }); if(document.getElementById('payment-page').classList.contains('active')) renderPaymentPage(); else renderDetailPayments(p, type); }
+        async function updatePaymentVal(pid, idx, key, val, type) { const collection = (type === 'design') ? "design_projects" : "eng_projects"; const list = (type === 'design') ? designProjects : engProjects; const p = list.find(x => x.id === pid); const newPayments = [...p.payments]; newPayments[idx][key] = val; await updateCloud(collection, pid, { payments: newPayments }); }
         function updatePaymentAmount(pid, idx, val, type) { updatePaymentVal(pid, idx, 'amount', parseCurrency(val), type); }
         function updatePaymentDate(pid, idx, val, type) { updatePaymentVal(pid, idx, 'date', val, type); }
         function updatePaymentLink(pid, idx, val, type) { updatePaymentVal(pid, idx, 'linkedStage', val, type); }
         function updatePaymentName(pid, idx, val, type) { updatePaymentVal(pid, idx, 'name', val, type); }
-        async function deletePaymentStage(pid, idx, type) { if(!confirm('確定刪除此期款？')) return; const collection = type === 'design' ? "design_projects" : "eng_projects"; const list = type === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === pid); const newPayments = [...p.payments]; newPayments.splice(idx, 1); await updateCloud(collection, pid, { payments: newPayments }); p.payments = newPayments; renderDetailPayments(p, type); }
-        async function deleteStage(sid) { if(!confirm('確定刪除此項目？此動作無法復原。')) return; const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const newOrder = p.stageOrder.filter(id => id !== sid); p.stageOrder = newOrder; await updateCloud(collection, currentId, { stageOrder: newOrder }); renderStages(p, currentType); }
+        async function deletePaymentStage(pid, idx, type) { if(!confirm('確定刪除此期款？')) return; const collection = (type === 'design') ? "design_projects" : "eng_projects"; const list = (type === 'design') ? designProjects : engProjects; const p = list.find(x => x.id === pid); const newPayments = [...p.payments]; newPayments.splice(idx, 1); await updateCloud(collection, pid, { payments: newPayments }); p.payments = newPayments; renderDetailPayments(p, type); }
+        async function deleteStage(sid) { if(!confirm('確定刪除此項目？此動作無法復原。')) return; const collection = (currentType === 'design') ? "design_projects" : "eng_projects"; const list = (currentType === 'design') ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const newOrder = p.stageOrder.filter(id => id !== sid); p.stageOrder = newOrder; await updateCloud(collection, currentId, { stageOrder: newOrder }); renderStages(p, currentType); }
         async function addEngineeringPaymentStage() { const p = engProjects.find(x => x.id === currentId); const newPayments = [...(p.payments||[])]; newPayments.push({ name: `第 ${newPayments.length + 1} 期款`, amount: 0, done: false, date: '', linkedStage: '' }); await updateCloud("eng_projects", currentId, { payments: newPayments }); p.payments = newPayments; renderDetailPayments(p, 'engineering'); }
         function handleDragStart(e) { draggedItem = this; e.dataTransfer.effectAllowed = 'move'; this.classList.add('dragging'); }
         function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; }
@@ -1085,8 +1097,8 @@
         function handleTouchStart(e, index) { touchDragSrcIndex = index; const item = e.target.closest('.checklist-item'); if(item) item.classList.add('dragging'); }
         function handleTouchMove(e) { e.preventDefault(); const t = e.touches[0]; const target = document.elementFromPoint(t.clientX, t.clientY); const item = target ? target.closest('.checklist-item') : null; document.querySelectorAll('.checklist-item').forEach(el => el.classList.remove('drag-over')); if (item) item.classList.add('drag-over'); }
         function handleTouchEnd(e, index) { const t = e.changedTouches[0]; const target = document.elementFromPoint(t.clientX, t.clientY); const targetItem = target ? target.closest('.checklist-item') : null; document.querySelectorAll('.checklist-item').forEach(el => { el.classList.remove('dragging'); el.classList.remove('drag-over'); }); if (targetItem && targetItem.dataset.index !== undefined) { const newIndex = parseInt(targetItem.dataset.index); if (touchDragSrcIndex !== null && touchDragSrcIndex !== newIndex) { reorderStages(touchDragSrcIndex, newIndex); } } touchDragSrcIndex = null; }
-        async function reorderStages(oldIdx, newIdx) { const collection = currentType === 'design' ? "design_projects" : "eng_projects"; const list = currentType === 'design' ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const newOrder = [...p.stageOrder]; const item = newOrder.splice(oldIdx, 1)[0]; newOrder.splice(newIdx, 0, item); p.stageOrder = newOrder; renderStages(p, currentType); await updateCloud(collection, currentId, { stageOrder: newOrder }); }
-        async function deleteCurrentProject() { if (!confirm('確定刪除？')) return; const collection = currentType === 'design' ? "design_projects" : "eng_projects"; await db.collection(collection).doc(currentId).delete(); goBack(); }
+        async function reorderStages(oldIdx, newIdx) { const collection = (currentType === 'design') ? "design_projects" : "eng_projects"; const list = (currentType === 'design') ? designProjects : engProjects; const p = list.find(x => x.id === currentId); const newOrder = [...p.stageOrder]; const item = newOrder.splice(oldIdx, 1)[0]; newOrder.splice(newIdx, 0, item); p.stageOrder = newOrder; renderStages(p, currentType); await updateCloud(collection, currentId, { stageOrder: newOrder }); }
+        async function deleteCurrentProject() { if (!confirm('確定刪除？')) return; const collection = (currentType === 'design') ? "design_projects" : "eng_projects"; await db.collection(collection).doc(currentId).delete(); goBack(); }
         async function toggleSuspend(){ const p = engProjects.find(x => x.id === currentId); const newStatus = p.status === 'suspended' ? 'active' : 'suspended'; await updateCloud("eng_projects", currentId, { status: newStatus }); goBack(); }
         async function moveToWarranty(){ if (!confirm('確認完工?')) return; await updateCloud("eng_projects", currentId, { status: 'warranty', warrantyDate: new Date().toISOString().split('T')[0] }); navigateTo('warranty-list-page'); }
         async function updateDesignStatus(s){ await updateCloud("design_projects", currentId, { status: s }); goBack(); }
@@ -1111,7 +1123,7 @@
             });
         }
 
-        function renderList(type) { let list=[], cid=''; if(type==='design'){list=designProjects;cid='design-list-container';}else if(type==='engineering'){list=engProjects.filter(p=>p.status==='active'||p.status==='suspended');cid='engineering-list-container';}else{list=engProjects.filter(p=>p.status==='warranty');cid='warranty-list-container';} const c=document.getElementById(cid); c.innerHTML=''; list.sort((a,b)=>(a.status==='suspended'?1:-1)); if(list.length===0) c.innerHTML='<div style="text-align:center;color:#666;margin-top:30px">暫無案件</div>'; list.forEach(p=>{ const defs = type === 'design' ? STAGES_DESIGN_DEF : STAGES_ENG_DEF; const order = p.stageOrder || (type === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER); const prog = calculateProgress(p, type); const pct = prog.activeCount===0?0:Math.round((prog.doneCount/prog.activeCount)*100); let tags=''; if(p.status==='tracking')tags+='<span class="tag tag-track">追蹤中</span>'; if(p.status==='suspended')tags+='<span class="tag tag-suspend">暫緩</span>'; if(p.status==='warranty')tags+='<span class="tag tag-warranty">保固中</span>'; let oType=type==='warranty'?'engineering':type; let currentProgress = '尚未開始'; if(prog.doneCount > 0) { for(let i=order.length-1; i>=0; i--) { const s = p.stages[order[i]]; if(s && s.enabled!==false && s.done) { currentProgress = s.name || defs[order[i]]; break; } } } c.innerHTML+=`<div class="project-card" onclick="openDetail('${type==='warranty'?'warranty':oType}','${p.id}')"><div style="position:relative;z-index:2;"><div style="font-weight:bold;color:var(--text-primary)">${safe(p.name)} ${tags}</div><div style="font-size:0.9rem;color:var(--text-secondary)">${safe(p.client||'')}</div><div class="card-progress-text">目前進度：${safe(currentProgress)}</div></div><div class="progress-bg"><div class="progress-fill" style="width:${pct}%"></div></div></div>`; }); }
+        function renderList(type) { let list=[], cid=''; if(type==='design'){list=designProjects;cid='design-list-container';}else if(type==='engineering'){list=engProjects.filter(p=>p.status==='active'||p.status==='suspended');cid='engineering-list-container';}else{list=engProjects.filter(p=>p.status==='warranty');cid='warranty-list-container';} const c=document.getElementById(cid); c.innerHTML=''; list.sort((a,b)=>(a.status==='suspended'?1:-1)); if(list.length===0) c.innerHTML='<div style="text-align:center;color:#666;margin-top:30px">暫無案件</div>'; list.forEach(p=>{ const defs = type === 'design' ? STAGES_DESIGN_DEF : STAGES_ENG_DEF; const order = p.stageOrder || (type === 'design' ? DEFAULT_DESIGN_ORDER : DEFAULT_ENG_ORDER); const prog = calculateProgress(p, type); const pct = (prog.activeCount===0)?0:Math.round((prog.doneCount/prog.activeCount)*100); let tags=''; if(p.status==='tracking')tags+='<span class="tag tag-track">追蹤中</span>'; if(p.status==='suspended')tags+='<span class="tag tag-suspend">暫緩</span>'; if(p.status==='warranty')tags+='<span class="tag tag-warranty">保固中</span>'; let oType=type==='warranty'?'engineering':type; let currentProgress = '尚未開始'; if(prog.doneCount > 0) { for(let i=order.length-1; i>=0; i--) { const s = p.stages[order[i]]; if(s && s.enabled!==false && s.done) { currentProgress = s.name || defs[order[i]]; break; } } } c.innerHTML+=`<div class="project-card" onclick="openDetail('${type==='warranty'?'warranty':oType}','${p.id}')"><div style="position:relative;z-index:2;"><div style="font-weight:bold;color:var(--text-primary)">${safe(p.name)} ${tags}</div><div style="font-size:0.9rem;color:var(--text-secondary)">${safe(p.client||'')}</div><div class="card-progress-text">目前進度：${safe(currentProgress)}</div></div><div class="progress-bg"><div class="progress-fill" style="width:${pct}%"></div></div></div>`; }); }
         function renderActionBar(type, status) { const b = document.getElementById('action-bar-container'); b.innerHTML = ''; if (type === 'design') { const trackBtnLabel = status === 'tracking' ? '取消追蹤' : '追蹤中'; const trackBtnClass = status === 'tracking' ? 'btn-track' : 'btn-track'; b.innerHTML = `<button class="action-btn ${trackBtnClass}" onclick="toggleDesignTracking()">${trackBtnLabel}</button><button class="action-btn btn-del" onclick="deleteCurrentProject()">刪除</button><button class="action-btn btn-done" onclick="convertToEngineering()">完成</button>`; } else if (type === 'engineering') { b.innerHTML = `<button class="action-btn btn-del" onclick="deleteCurrentProject()">刪除</button><button class="action-btn btn-suspend" onclick="toggleSuspend()">${status==='suspended'?'恢復':'暫緩'}</button><button class="action-btn btn-done" onclick="moveToWarranty()">完工</button>`; } else if (type === 'warranty') { b.innerHTML = `<button class="action-btn btn-del" onclick="deleteCurrentProject()">刪除紀錄</button>`; } }
         function checkAlerts(){ const l=document.getElementById('alert-list'); l.innerHTML=''; const t=new Date().toISOString().split('T')[0]; let h=false; const chk=(projs,lbl,defs)=>{ projs.forEach(p=>{ if(p.status==='suspended'||p.status==='warranty')return; Object.keys(p.stages||{}).forEach(sid=>{ const s=p.stages[sid]; if(s.enabled!==false&&s.end&&s.end<t&&!s.done){ h=true; let sName = defs[sid] || s.name; l.innerHTML+=`<div class="alert-item" onclick="openDetail('${lbl==='設計'?'design':'engineering'}','${p.id}')">⚠️ [${lbl}] ${safe(p.name)} - ${safe(sName)} 延誤</div>`; } }) }) }; chk(designProjects,'設計',STAGES_DESIGN_DEF); engProjects.forEach(p=>{ if(p.status==='suspended'||p.status==='warranty')return; Object.keys(p.stages||{}).forEach(sid=>{ const s=p.stages[sid]; if(s.enabled!==false&&s.end&&s.end<t&&!s.done){ h=true; let sName = STAGES_ENG_DEF[sid] || s.name; l.innerHTML+=`<div class="alert-item" onclick="openDetail('engineering','${p.id}')">⚠️ [工程] ${safe(p.name)}-${safe(sName)} 延誤</div>`; } }) }); engProjects.forEach(p=>{if(p.status==='suspended'){h=true;l.innerHTML+=`<div class="alert-item" style="color:var(--orange)" onclick="openDetail('engineering','${p.id}')">⛔ [暫緩] ${safe(p.name)}</div>`;}}); engProjects.forEach(p=>{if(p.status==='warranty'&&p.warrantyDate){const d=new Date(p.warrantyDate); d.setMonth(d.getMonth()+10); if(t>=d.toISOString().split('T')[0]){h=true; l.innerHTML+=`<div class="alert-item" style="color:var(--purple)" onclick="openDetail('warranty','${p.id}')">📞 [保固] ${safe(p.name)} 維修關懷</div>`;}}}); document.getElementById('alert-dashboard').style.display=h?'block':'none'; }
         function renderCalendar(){ const y=calDate.getFullYear(), m=calDate.getMonth(); document.getElementById('cal-month-year').innerText = `${y}/${String(m+1).padStart(2,'0')}`; const c=document.getElementById('calendar-days'); c.innerHTML=''; for(let i=0;i<new Date(y,m,1).getDay();i++)c.innerHTML+='<div></div>'; for(let d=1;d<=new Date(y,m+1,0).getDate();d++){ const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; let hasDesign=false, hasEng=false; designProjects.forEach(p=>{ Object.values(p.stages||{}).forEach(s=>{if(s.start&&s.end&&ds>=s.start&&ds<=s.end)hasDesign=true;}); }); engProjects.forEach(p=>{ if(p.status!=='warranty'){ Object.values(p.stages||{}).forEach(s=>{ if(s.enabled!==false&&s.start&&s.end&&ds>=s.start&&ds<=s.end) hasEng=true; }); } }); let barsHtml='<div class="cal-bar-container">'; if(hasDesign)barsHtml+='<div class="cal-bar bar-design"></div>'; if(hasEng)barsHtml+='<div class="cal-bar bar-eng"></div>'; barsHtml+='</div>'; const div=document.createElement('div'); div.className=`cal-date`; div.innerHTML=`<span>${d}</span>${barsHtml}`; div.onclick=()=>showEvents(ds,div); c.appendChild(div); } }
