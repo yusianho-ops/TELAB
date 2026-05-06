@@ -489,6 +489,7 @@
                 p[key] = val; 
                 if(key.startsWith('eng')) calculateTotalEng(p);
                 if(key.startsWith('design')) calculateTotalDesign(p);
+                renderDetailPayments(p, currentType);
             }
             updateCloud(collection, currentId, { [key]: val });
         }
@@ -594,7 +595,7 @@
             document.getElementById('btn-save-log').innerText = '＋ 新增紀錄';
         }
         function toNum(el) { el.value = el.value.replace(/,/g, ''); }
-        function toCur(el) { let v = parseInt(el.value.replace(/,/g, '')) || 0; el.value = v > 0 ? formatNumber(v) : ''; }
+        function toCur(el) { let v = parseInt(el.value.replace(/,/g, '')) || 0; el.value = formatNumber(v); }
         function handleTempPhoto(i){if(i.files&&i.files[0]){tempPhotoFile = i.files[0]; const r=new FileReader(); r.onload=e=>{document.getElementById('new-log-preview').src=e.target.result; document.getElementById('new-log-preview').style.display='block';}; r.readAsDataURL(i.files[0]);}}
         function navigateTo(pageId) { clearTempData(); document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(pageId).classList.add('active'); const back = document.getElementById('back-btn'); const title = document.getElementById('page-title'); if (pageId === 'home-page') { back.style.display = 'none'; title.innerText = '對錯空間實驗室'; refreshUI(); } else { back.style.display = 'block'; back.onclick = () => goBack(); if (pageId === 'design-list-page') { title.innerText = '設計案件列表'; renderList('design'); } else if (pageId === 'engineering-list-page') { title.innerText = '工程案件列表'; renderList('engineering'); } else if (pageId === 'warranty-list-page') { title.innerText = '完工保固列表'; renderList('warranty'); } else if (pageId === 'payment-page') { title.innerText = '收款進度'; renderPaymentPage(); } else if (pageId === 'sop-page') { title.innerText = 'SOP 項目'; renderSOPPage(); } else if (pageId === 'project-detail-page') { title.innerText = getDetailTitle(); } } }
         function getDetailTitle() { return currentType === 'design' ? '設計詳情' : currentType === 'engineering' ? '工程詳情' : '保固詳情'; }
@@ -631,7 +632,7 @@
                     document.getElementById('detail-sop-section').style.display = 'block'; 
                 }
                 if (type === 'design') { 
-                    dPriceRow.style.display = 'block'; document.getElementById('d-design-price').value = p.designPrice ? formatNumber(p.designPrice) : ''; 
+                    dPriceRow.style.display = 'block'; document.getElementById('d-design-price').value = (p.designPrice !== undefined) ? formatNumber(p.designPrice) : ''; 
                     if(!p.stageOrder) p.stageOrder = [...DEFAULT_DESIGN_ORDER]; 
                     document.getElementById('stages-title').innerText = '設計階段'; 
                     const taxSwitch = document.getElementById('d-design-tax-toggle');
@@ -639,8 +640,8 @@
                     calculateTotalDesign(p);
                 } else { 
                     ePriceRow.style.display = 'block'; 
-                    document.getElementById('d-eng-base').value = p.engBasePrice ? formatNumber(p.engBasePrice) : '';
-                    document.getElementById('d-eng-var').value = p.engVarPrice ? formatNumber(p.engVarPrice) : '';
+                    document.getElementById('d-eng-base').value = (p.engBasePrice !== undefined) ? formatNumber(p.engBasePrice) : '';
+                    document.getElementById('d-eng-var').value = (p.engVarPrice !== undefined) ? formatNumber(p.engVarPrice) : '';
                     const taxSwitch = document.getElementById('d-eng-tax-toggle');
                     if(taxSwitch) taxSwitch.checked = p.taxEnabled === true;
                     const supSwitch = document.getElementById('d-eng-sup-toggle');
